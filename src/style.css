@@ -36,8 +36,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visi
 }
 
 .header-inner {
-  max-width:1180px;
-  padding:19px 28px;
+  max-width:1760px;
+  padding:19px 20px;
   margin:auto;
   display:flex;
   justify-content:space-between;
@@ -104,8 +104,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visi
 }
 
 .container {
-  max-width:1180px;
-  padding:0 28px;
+  max-width:1760px;
+  padding:0 20px;
   margin:auto
 }
 
@@ -505,9 +505,9 @@ input[type=range] {
 }
 
 footer {
-  max-width:1180px;
+  max-width:1760px;
   margin:28px auto;
-  padding:0 34px 32px;
+  padding:0 26px 32px;
   display:flex;
   justify-content:space-between;
   font-size:10px;
@@ -867,15 +867,25 @@ footer {
 }
 
 /* TV Lab */
+.tv-workspace {
+  padding: 22px;
+}
+
 .tv-screens {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+}
+
+.tv-card:last-child {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: calc((100% - 16px) / 2);
 }
 
 .tv-card {
   min-width: 0;
-  padding: 14px;
+  padding: 10px;
   border: 1px solid #e7e5ed;
   border-radius: 12px;
   background: #faf9fc;
@@ -987,8 +997,13 @@ footer {
 }
 .tv-answers button:hover { border-color: #816be0; background: #f7f4ff; }
 
-@media (max-width: 650px) {
+@media (max-width: 1000px) {
   .tv-screens { grid-template-columns: 1fr; }
+  .tv-card:last-child { grid-column: auto; justify-self: stretch; width: auto; }
+}
+
+@media (max-width: 650px) {
+  .tv-workspace { padding: 16px; }
   .tv-tools { align-items: flex-start; flex-direction: column; }
 }
 
