@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { TV_SIZES, tvWorkingDimensions, hdPhotoDimensions, zoomRect, answerSizeQuestion } from '../src/tv-lab.js';
+import { TV_SIZES, tvWorkingDimensions, hdPhotoDimensions, zoomRect, answerSizeQuestion, tvBlurPixels } from '../src/tv-lab.js';
 
 test('TV sizes represent 32, 45 and 70 inches in proportion', () => {
   assert.deepEqual(TV_SIZES, [32, 45, 70]);
@@ -19,6 +19,15 @@ test('HD mode fits photos within 1280 × 720 while preserving proportions', () =
   assert.deepEqual(hdPhotoDimensions(3840, 2880), { width: 960, height: 720 });
   assert.deepEqual(hdPhotoDimensions(400, 300), { width: 400, height: 300 });
   assert.equal(hdPhotoDimensions(0, 100), null);
+});
+
+test('HD detail is shown with a progressively stronger illustrative blur on larger TVs', () => {
+  assert.equal(tvBlurPixels(32, 'hd', 3840, 2160), 0);
+  assert.ok(tvBlurPixels(45, 'hd', 3840, 2160) > 0);
+  assert.ok(tvBlurPixels(70, 'hd', 3840, 2160) > tvBlurPixels(45, 'hd', 3840, 2160));
+  assert.equal(tvBlurPixels(70, 'original', 3840, 2160), 0);
+  assert.ok(tvBlurPixels(70, 'original', 1280, 720) > 0);
+  assert.ok(tvBlurPixels(70, 'original', 720, 1280) > 0);
 });
 
 test('the TV size question explains that existing pixels cover more space', () => {

@@ -39,6 +39,15 @@ export function answerSizeQuestion(answer) {
 }
 
 export const TV_SIZES = [32, 45, 70];
+
+export function tvBlurPixels(diagonal, quality, width, height) {
+  const hdSized = Math.max(width, height) <= 1280 && Math.min(width, height) <= 720;
+  if (quality !== 'hd' && !hdSized) return 0;
+  if (diagonal === 45) return 1;
+  if (diagonal === 70) return 2.25;
+  return 0;
+}
+
 export const tvWorkingDimensions = (width, height) => workingDimensions(width, height, 3840);
 
 export function hdPhotoDimensions(width, height) {
@@ -136,7 +145,7 @@ export function initTvLab(root) {
       <div class="tv-size-screens">${TV_SIZES.map(diagonal => `<figure class="tv-size-screen" style="--diagonal:${diagonal};--screen-width:${diagonal / 70 * 100}%"><div class="tv-size-bezel"><canvas width="640" height="360" data-tv-size="${diagonal}" aria-label="Simulated ${diagonal}-inch television"></canvas></div><figcaption>${diagonal}″ <span>TV</span></figcaption></figure>`).join('')}</div>
       <div class="tv-tools"><button id="tv-look-closer" class="hint-button" aria-pressed="false">⌕ Look closer</button><p>The TVs are shown in proportion. They are simulations, not actual physical sizes.</p></div>
       <div id="tv-closeups" class="tv-closeups" hidden>${TV_SIZES.map(diagonal => `<figure><canvas width="640" height="360" data-tv-zoom="${diagonal}" aria-label="Magnified centre of ${diagonal}-inch television"></canvas><figcaption>${diagonal}″ TV</figcaption></figure>`).join('')}</div>
-      <p id="tv-zoom-note" class="tv-note" hidden>The close-ups show the same physical area centred on the same detail. A larger TV spreads the same source pixels over a larger surface.</p>
+      <p id="tv-zoom-note" class="tv-note" hidden>The close-ups show the same physical area centred on the same detail. A larger TV spreads the same source pixels over a larger surface. The close-ups show the source pixels without the added blur.</p>
       <div class="tv-fact"><span>✳</span><div><strong>Same image, larger screen.</strong><p>The image does not lose pixels when the TV gets bigger. Its existing pixels cover more space and may be easier to notice at the same viewing distance.</p></div></div>
       <p class="tv-note">This is a simplified simulation, assuming the same viewing distance. Real results also depend on the TV panel, scaling and source quality.</p>
     </div>
@@ -151,7 +160,10 @@ export function initTvLab(root) {
     if (quality === 'hd' && !hdImage) hdImage = makeHdImage(original);
     const image = quality === 'hd' ? hdImage : original;
     for (const diagonal of TV_SIZES) {
-      drawTvImage(get(`[data-tv-size="${diagonal}"]`), image, diagonal, false);
+      const screen = get(`[data-tv-size="${diagonal}"]`);
+      drawTvImage(screen, image, diagonal, false);
+      const blur = tvBlurPixels(diagonal, quality, original.width, original.height);
+      screen.style.filter = blur ? `blur(${blur}px)` : 'none';
       if (!get('#tv-closeups').hidden) drawTvImage(get(`[data-tv-zoom="${diagonal}"]`), image, diagonal, true);
     }
     get('#tv-image-info').textContent = `${imageDescription}. ${quality === 'hd' ? `HD simulation: ${image.width.toLocaleString('en-GB')} × ${image.height.toLocaleString('en-GB')} px of image detail (maximum 1280 × 720). Smaller images are not enhanced.` : 'Original working-image detail.'}`;

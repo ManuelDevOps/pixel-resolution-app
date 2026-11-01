@@ -12,7 +12,7 @@ function createHarness() {
     const draws = [];
     const transforms = [];
     return {
-      id, width: 640, height: 360, draws, transforms,
+      id, width: 640, height: 360, draws, transforms, style: {},
       getContext() {
         return {
           save() {}, restore() {}, scale() {}, fillRect() {}, clearRect() {},
@@ -84,6 +84,8 @@ test('TV Lab uploads once, shares the image, simulates HD and preserves it on re
     assert.match(root.innerHTML, /70″ TV/);
     const initial = [32, 45, 70].map(size => lastImage(screen(node, size)));
     assert.ok(initial.every(image => image === initial[0]));
+    assert.equal(screen(node, 70).style.filter, 'none');
+    assert.doesNotMatch(root.innerHTML, /The extra blur on larger screens is exaggerated for teaching/);
 
     node('#tv-photo-input').files = [{ type: 'image/png', size: 10 }];
     node('#tv-photo-input').fire('change');
@@ -100,8 +102,12 @@ test('TV Lab uploads once, shares the image, simulates HD and preserves it on re
     const hd = [32, 45, 70].map(size => lastImage(screen(node, size)));
     assert.ok(hd.every(image => image === hd[0]));
     assert.deepEqual([hd[0].width, hd[0].height], [960, 720]);
+    assert.equal(screen(node, 32).style.filter, 'none');
+    assert.equal(screen(node, 45).style.filter, 'blur(1px)');
+    assert.equal(screen(node, 70).style.filter, 'blur(2.25px)');
     node('#tv-original').fire('click');
     assert.equal(node('#tv-original').attributes['aria-pressed'], 'true');
+    assert.equal(screen(node, 70).style.filter, 'none');
     assert.ok([32, 45, 70].every(size => lastImage(screen(node, size)) === original[0]));
     node('#tv-hd').fire('click');
 
@@ -126,6 +132,8 @@ test('TV Lab uploads once, shares the image, simulates HD and preserves it on re
     pending[1].fire('load', 500, 1000);
     assert.match(node('#tv-image-info').textContent, /500 × 1,000 px/);
     assert.match(node('#tv-image-info').textContent, /360 × 720 px of image detail/);
+    node('#tv-original').fire('click');
+    assert.equal(screen(node, 70).style.filter, 'blur(2.25px)');
     assert.deepEqual(revoked, ['blob:1', 'blob:2']);
   } finally {
     restore();
