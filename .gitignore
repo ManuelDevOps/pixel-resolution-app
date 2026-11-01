@@ -1,0 +1,11 @@
+# Local browser automation artifacts
+.playwright-mcp/
+
+# Local agent and workflow state
+.atl/
+odd/
+
+# Dependencies and local environment files
+node_modules/
+.env
+.env.*

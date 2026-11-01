@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f6fc">
+  <title>Pixel Resolution Lab</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Pixel Resolution Lab home"><span class="brand-icon" aria-hidden="true">▦</span><span>PIXEL<span class="brand-accent">LAB</span><small>RESOLUTION EXPLORER</small></span></a>
+      <nav class="mode-switch" aria-label="Application mode">
+        <button id="explore-tab" class="active" aria-pressed="true">Explore</button>
+        <button id="challenge-tab" aria-pressed="false">Challenge <span aria-hidden="true">↗</span></button>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <section id="explore" aria-labelledby="explore-title"></section>
+    <section id="challenge" aria-labelledby="challenge-title" hidden></section>
+  </main>
+  <footer><span>PIXEL LAB <span aria-hidden="true">✳</span></span><span>A little curiosity goes a long way.</span></footer>
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>
