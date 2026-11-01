@@ -69,6 +69,11 @@ test('malformed request targets return a client error without stopping the publi
   assert.equal(script.headers['content-type'], 'text/javascript; charset=utf-8');
   assert.equal(script.headers['x-content-type-options'], 'nosniff');
   assert.match(script.body, /export /);
+  const tvLab = await get(port, '/src/tv-lab.js');
+  assert.equal(tvLab.status, 200);
+  assert.equal(tvLab.headers['content-type'], 'text/javascript; charset=utf-8');
+  assert.equal(tvLab.headers['x-content-type-options'], 'nosniff');
+  assert.match(tvLab.body, /initTvLab/);
   const missing = await get(port, '/not-allowed');
   assert.equal(missing.status, 404);
   assert.equal(missing.body, 'Not found');

@@ -1,8 +1,11 @@
 import { dimensions, imageBytes, guessPoints, lowestUseful, pixelCount, bestFit, validatePhoto, workingDimensions } from './logic.js';
+import { initTvLab } from './tv-lab.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const explore = $('#explore');
 const challenge = $('#challenge');
+const tvLab = $('#tv-lab');
+let tvLabReady = false;
 const steps = [8, 16, 32, 64, 128];
 const resolutionSteps = width => width ? [...steps.filter(step => step < width), width] : steps;
 
@@ -41,9 +44,14 @@ function draw(canvas, index, width, grid = false) {
   else img.addEventListener('load', paint, { once: true });
 }
 function setMode(mode) {
-  const isExplore = mode === 'explore';
-  explore.hidden = !isExplore; challenge.hidden = isExplore;
-  for (const [id, active] of [['explore-tab', isExplore], ['challenge-tab', !isExplore]]) {
+  if (mode === 'tv' && !tvLabReady) {
+    initTvLab(tvLab);
+    tvLabReady = true;
+  }
+  explore.hidden = mode !== 'explore';
+  challenge.hidden = mode !== 'challenge';
+  tvLab.hidden = mode !== 'tv';
+  for (const [id, active] of [['explore-tab', mode === 'explore'], ['challenge-tab', mode === 'challenge'], ['tv-tab', mode === 'tv']]) {
     $('#' + id).classList.toggle('active', active);
     $('#' + id).setAttribute('aria-pressed', String(active));
   }
@@ -51,6 +59,7 @@ function setMode(mode) {
 }
 $('#explore-tab').addEventListener('click', () => setMode('explore'));
 $('#challenge-tab').addEventListener('click', () => setMode('challenge'));
+$('#tv-tab').addEventListener('click', () => setMode('tv'));
 
 explore.innerHTML = `
   <div class="hero"><div><span class="eyebrow"><span>✳</span> THE PIXEL LAB</span><h1 id="explore-title">Small pixels.<br><em>Big picture.</em></h1><p>Every picture has a secret: it’s made of tiny squares. Change the resolution and see what happens.</p></div><div class="hero-stamp" aria-hidden="true">LOOK<br>CLOSER <span>↘</span></div></div>

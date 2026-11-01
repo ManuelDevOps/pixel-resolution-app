@@ -7,6 +7,7 @@ const files = new Map([
   ['/src/style.css', ['src/style.css', 'text/css; charset=utf-8']],
   ['/src/app.js', ['src/app.js', 'text/javascript; charset=utf-8']],
   ['/src/logic.js', ['src/logic.js', 'text/javascript; charset=utf-8']],
+  ['/src/tv-lab.js', ['src/tv-lab.js', 'text/javascript; charset=utf-8']],
 ]);
 const port = Number(process.env.PORT || 3000);
 createServer(async (request, response) => {
