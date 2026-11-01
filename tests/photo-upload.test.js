@@ -34,7 +34,7 @@ test('Explore chooser and drop keep samples and challenges intact, reject safely
     if (!nodes.has(id)) {
       const listeners = {};
       nodes.set(id, {
-        id, hidden: false, checked: false, value: id === 'resolution' ? '2' : '0',
+        id, hidden: false, checked: false, value: id === 'resolution' ? '5' : '0',
         textContent: '', dataset: {}, width: 640, height: 480, files: [],
         attributes: {}, classList: { toggle() {}, add() {}, remove() {} },
         setAttribute(key, value) { this.attributes[key] = value; }, getAttribute(key) { return this.attributes[key]; },
@@ -70,8 +70,14 @@ test('Explore chooser and drop keep samples and challenges intact, reject safely
   };
   try {
     await import(`../src/app.js?photo-test=${Date.now()}`);
-    assert.equal(node('preview-size').textContent, '32 × 24 px');
+    assert.equal(node('preview-size').textContent, '320 × 240 px');
+    assert.equal(node('total').textContent, '76,800');
+    assert.equal(node('resolution').getAttribute('aria-valuetext'), '320 × 240 px');
+    assert.match(node('explore').innerHTML, /id="resolution" type="range" min="0" max="5" value="5"/);
+    assert.match(node('explore').innerHTML, /<span>320 px<\/span>/);
     assert.match(node('explore').innerHTML, /id="upload-label"[^>]*>Drag and drop the image here<\/label>/);
+    node('resolution').value = '2'; node('resolution').fire('input');
+    assert.equal(node('preview-size').textContent, '32 × 24 px');
     const jpeg = { type: 'image/jpeg', size: 5, name: 'portrait.jpg' };
     node('photo-input').files = [jpeg]; node('photo-input').fire('change');
     assert.equal(pending.length, 1);
@@ -143,7 +149,7 @@ test('Explore chooser and drop keep samples and challenges intact, reject safely
     node('image-select').value = '0'; node('image-select').fire('change');
     assert.equal(node('source-size').textContent, 'Sample illustration: 320 × 240 px');
     assert.equal(node('preview-size').textContent, '32 × 24 px');
-    assert.equal(node('resolution').max, '4');
+    assert.equal(node('resolution').max, '5');
     assert.equal(node('resolution').value, '2');
     assert.match(node('range-ticks').innerHTML, /<span>8 px<\/span>/);
     assert.ok(calls.some(c => c[0] === 'offscreen' && c[1].source?.startsWith('data:')));
@@ -157,7 +163,7 @@ test('Explore chooser and drop keep samples and challenges intact, reject safely
     assert.equal(node('preview').height, 1);
     node('image-select').value = '2'; node('image-select').fire('change');
     assert.equal(node('resolution').value, '2');
-    assert.equal(node('resolution').max, '4');
+    assert.equal(node('resolution').max, '5');
     assert.equal(node('preview-size').textContent, '32 × 24 px');
     node('photo-input').files = [{ type: 'image/jpeg', size: 5 }]; node('photo-input').fire('change');
     node('image-select').fire('change');

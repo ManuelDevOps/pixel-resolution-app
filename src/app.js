@@ -7,7 +7,8 @@ const challenge = $('#challenge');
 const tvLab = $('#tv-lab');
 let tvLabReady = false;
 const steps = [8, 16, 32, 64, 128];
-const resolutionSteps = width => width ? [...steps.filter(step => step < width), width] : steps;
+const sampleSteps = [...steps, 320];
+const resolutionSteps = width => width ? [...steps.filter(step => step < width), width] : sampleSteps;
 
 // Every preview is sampled from these original illustrations, never from another preview.
 const artworks = [
@@ -66,7 +67,7 @@ explore.innerHTML = `
   <div class="workspace"><div class="section-heading"><div><span class="step-label">01 / EXPLORE</span><h2>Let’s look closer <span>✳</span></h2><p>Pick a picture, then adjust the resolution.</p></div><label class="select-label">YOUR IMAGE <select id="image-select"><option value="0">Mountain landscape</option><option value="1">Rocket launch</option><option value="2">Curious cat</option><option value="photo" disabled>Your photo</option></select></label></div>
   <div id="drop-zone" class="upload-zone"><label id="upload-label" for="photo-input">Drag and drop the image here</label><span>or</span><input id="photo-input" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Choose an image"><p>JPEG, PNG or WebP · up to 100 MB · processed only in your browser</p><p id="photo-error" class="upload-error" role="alert" aria-live="polite"></p></div>
   <div class="comparison"><figure class="image-card"><figcaption><span>ORIGINAL IMAGE</span><span class="card-tag">THE FULL PICTURE</span></figcaption><div class="picture"><canvas id="original" width="640" height="480" aria-label="Original illustration"></canvas></div><div class="card-bottom"><span id="source-size">Sample illustration: 320 × 240 px</span><span>✳</span></div></figure><figure class="image-card preview-card"><figcaption><span>PIXELATED PREVIEW</span><span class="live-dot">● LIVE</span></figcaption><div class="picture"><canvas id="preview" width="640" height="480" aria-label="Pixelated illustration"></canvas></div><div class="card-bottom">Your resolution <strong id="preview-size"></strong></div></figure></div>
-  <div class="controls"><div class="resolution-head"><div><span class="step-label">MAKE A CHANGE</span><h3>Resolution <span>↔</span></h3></div><label class="grid-option"><input type="checkbox" id="grid"> Show pixel grid</label></div><div class="range-row"><span>LESS DETAIL</span><input id="resolution" type="range" min="0" max="4" value="2" step="1" aria-label="Image resolution"><span>MORE DETAIL</span></div><div class="range-ticks"><span>8 px</span><span>16 px</span><span>32 px</span><span>64 px</span><span>128 px</span></div><div class="stats"><div><span>WIDTH</span><strong id="width"></strong></div><b>×</b><div><span>HEIGHT</span><strong id="height"></strong></div><b>=</b><div class="total"><span>TOTAL PIXELS</span><strong id="total"></strong></div></div><p id="grid-note" class="hint" hidden>The grid is shown at 32 pixels wide or below, so individual squares remain visible.</p></div>
+  <div class="controls"><div class="resolution-head"><div><span class="step-label">MAKE A CHANGE</span><h3>Resolution <span>↔</span></h3></div><label class="grid-option"><input type="checkbox" id="grid"> Show pixel grid</label></div><div class="range-row"><span>LESS DETAIL</span><input id="resolution" type="range" min="0" max="5" value="5" step="1" aria-label="Image resolution"><span>MORE DETAIL</span></div><div class="range-ticks"><span>8 px</span><span>16 px</span><span>32 px</span><span>64 px</span><span>128 px</span><span>320 px</span></div><div class="stats"><div><span>WIDTH</span><strong id="width"></strong></div><b>×</b><div><span>HEIGHT</span><strong id="height"></strong></div><b>=</b><div class="total"><span>TOTAL PIXELS</span><strong id="total"></strong></div></div><p id="grid-note" class="hint" hidden>The grid is shown at 32 pixels wide or below, so individual squares remain visible.</p></div>
   <div class="notice"><span class="notice-icon">✳</span><div><strong>Something to think about</strong><p>What happens to the detail as you lower the resolution?</p></div></div>
   <details class="details"><summary>Estimated uncompressed size <span>＋</span></summary><p id="storage"></p><p>Real file sizes can differ because of compression and file information.</p></details>
   <div class="workspace-bottom"><p>Ready to put your pixels to the test?</p><button class="primary" id="try-challenge">Try a challenge <span>↗</span></button></div></div>`;
@@ -206,7 +207,7 @@ select.addEventListener('change', () => {
 });
 $('#resolution').addEventListener('input', () => {
   const width = resolutionSteps(photo?.width)[Number($('#resolution').value)];
-  const sharedStep = steps.indexOf(width);
+  const sharedStep = (photo ? steps : sampleSteps).indexOf(width);
   if (sharedStep !== -1) sampleStep = sharedStep;
   updateExplore();
 });

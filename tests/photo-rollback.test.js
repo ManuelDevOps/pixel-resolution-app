@@ -102,7 +102,7 @@ test('failed first photo render restores sample selection and disabled photo opt
     assert.equal(node('source-size').textContent, 'Sample illustration: 320 × 240 px');
     assert.equal(node('preview-size').textContent, before);
     assert.equal(node('resolution').value, beforeStep);
-    assert.equal(node('resolution').max, '4');
+    assert.equal(node('resolution').max, '5');
     assert.equal(node('photo-error').textContent, readError);
     assert.deepEqual(revoked, ['blob:1']);
     node('image-select').value = '0'; node('image-select').fire('change');
