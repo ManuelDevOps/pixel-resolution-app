@@ -113,8 +113,11 @@ button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visi
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:52px 6px 42px
+  padding:28px 6px 22px
 }
+
+.hero > div:first-child { min-width:0 }
+#explore-title { font-size:clamp(32px,4vw,56px) }
 
 .eyebrow,.step-label {
   font-size:10px;
@@ -207,6 +210,26 @@ h1 em {
 .section-heading p {
   font-size:13px;
   color:#858394
+}
+
+#explore .section-heading {
+  display:grid;
+  grid-template-columns:max-content minmax(0,1fr) max-content;
+  align-items:center
+}
+#explore .mode-nav-row { justify-content:center }
+.mode-nav-row { display:flex; justify-content:flex-end; min-width:0 }
+.challenge-workspace .mode-nav-row, .game-shell .mode-nav-row { margin-bottom:22px }
+@media (max-width:950px) {
+  #explore .section-heading { grid-template-columns:minmax(0,1fr) auto }
+  #explore .select-label { grid-column:1 / -1; justify-self:end }
+}
+@media (max-width:750px) {
+  #explore .section-heading { grid-template-columns:minmax(0,1fr) }
+  #explore .select-label { justify-self:stretch }
+  .mode-nav-row { justify-content:flex-start }
+  .mode-switch { max-width:100% }
+  .mode-switch button { padding:9px 10px; white-space:nowrap }
 }
 
 .select-label {
@@ -780,7 +803,7 @@ footer span span {
 }
 
 .hero {
-  padding:38px 2px 30px
+  padding:24px 2px 18px
 }
 
 .hero-stamp {
@@ -866,6 +889,19 @@ footer {
 
 }
 
+#theme-toggle {
+  border: 1px solid #d5cfeb;
+  border-radius: 8px;
+  background: #fff;
+  color: #5d45ba;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+#theme-toggle:hover { background: #f3f1f8; }
+
 /* TV Lab */
 .tv-workspace {
   padding: 22px;
@@ -924,17 +960,60 @@ footer {
   text-align: center;
 }
 
+.tv-photo-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #c8c7ca url('/assets/tv-photo.png') center / 100% 100% no-repeat;
+}
+
 .tv-size-bezel {
+  position: absolute;
+  /* Slightly inset from the photographed bezel (1448 × 1086 source pixels). */
+  left: 3.8%;
+  top: 12.52%;
+  width: 92.27%;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
-  border-radius: 4px;
+  border-radius: 0;
   background: #303044;
-  box-shadow: 0 0 0 6px #303044;
 }
 
 .tv-size-bezel canvas, .tv-closeups canvas {
   display: block;
   width: 100%;
   height: auto;
+}
+
+.tv-size-bezel canvas { aspect-ratio: 16 / 9; }
+
+.tv-stretch-handle {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  transform: translate(-50%, -50%);
+  border: 3px solid white;
+  border-radius: 50%;
+  background: #765bd8;
+  box-shadow: 0 1px 5px #202538;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.tv-stretch-label, .tv-stretch-spacer {
+  display: block;
+  height: 56px;
+  margin-top: 10px;
+}
+
+.tv-stretch-label {
+  color: #777588;
+  font-size: 12px;
+}
+
+.tv-stretch-label input {
+  display: block;
+  margin-top: 6px;
 }
 
 .tv-size-screen figcaption, .tv-closeups figcaption {
@@ -963,7 +1042,7 @@ footer {
 
 .tv-closeups canvas {
   border: 5px solid #303044;
-  border-radius: 7px;
+  border-radius: 0;
 }
 
 .tv-tools {
@@ -1025,6 +1104,7 @@ footer {
 .tv-answers button:hover { border-color: #816be0; background: #f7f4ff; }
 
 @media (max-width: 750px) {
+  .tv-stretch-spacer { display: none; }
   .tv-size-screens { flex-direction: column; align-items: center; gap: 26px; }
   .tv-size-screen { flex: none; width: var(--screen-width); }
 }
@@ -1035,8 +1115,165 @@ footer {
   .tv-closeups { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 850px) {
+  .header-inner { flex-wrap: wrap; gap: 14px; }
+  #theme-toggle { margin-left: auto; }
+}
+
 @media (max-width: 480px) {
   .header-inner { flex-wrap: wrap; gap: 14px; }
   .mode-switch { width: 100%; }
-  .mode-switch button { flex: 1; }
+  .mode-switch button { flex: 1; min-width:0; padding:9px 5px; font-size:11px; }
+}
+
+/* Standard skin: Colour Depth's playful palette, without changing the lab layout or Cyber. */
+html:not([data-theme="cyber"]) {
+  color-scheme: light;
+  color: #2b1a3d;
+  background-color: #fffdf9;
+  background-image:
+    radial-gradient(circle, #5a189a20 1.5px, transparent 2px),
+    radial-gradient(circle, #ff8fab66 2px, transparent 2.5px),
+    linear-gradient(125deg, #fff1c9, #ffe0ec 52%, #dcf1ff);
+  background-size: 76px 76px, 113px 113px, cover;
+  background-position: 0 0, 34px 45px, 0 0;
+  font-family: ui-rounded, "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
+}
+
+html:not([data-theme="cyber"]) :is(h1, h2, h3, .brand) {
+  font-family: ui-rounded, "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
+  color: #2b1a3d;
+}
+
+html:not([data-theme="cyber"]) :is(.site-header, .workspace, .game-shell, .game-card) {
+  background: #fffdf9;
+  border-color: #ffd23f;
+  box-shadow: 6px 7px 0 #5a189a24;
+}
+
+html:not([data-theme="cyber"]) .site-header { border-bottom-width: 3px; }
+html:not([data-theme="cyber"]) :is(.workspace, .game-shell, .game-card) {
+  border-width: 2px;
+  border-radius: 22px;
+}
+html:not([data-theme="cyber"]) :is(.brand-accent, h1 em, .eyebrow, .live-dot, .card-bottom strong, .stats .total strong, .detail-value, .image-caption, .tv-fact > span, .resolution-head h3 span, footer span span) { color: #5a189a; }
+html:not([data-theme="cyber"]) .brand-icon { background: #5a189a; color: #fffdf9; border-radius: 14px; }
+html:not([data-theme="cyber"]) :is(.hero-stamp, .game-icon) { background: #f1eaff; color: #5a189a; }
+html:not([data-theme="cyber"]) .game-card:nth-child(2) .game-icon { background: #fff1c9; color: #2b1a3d; }
+html:not([data-theme="cyber"]) .game-card:nth-child(3) .game-icon { background: #7ee0b5; color: #2b1a3d; }
+html:not([data-theme="cyber"]) .game-card:nth-child(4) .game-icon { background: #ffcad9; color: #2b1a3d; }
+
+html:not([data-theme="cyber"]) :is(.mode-switch, .tv-quality-buttons) {
+  background: #f1eaff;
+  border: 1px solid #d2b8eb;
+  border-radius: 14px;
+}
+html:not([data-theme="cyber"]) :is(.mode-switch button, .tv-quality-buttons button) { color: #4b315c; border-radius: 10px; }
+html:not([data-theme="cyber"]) :is(.mode-switch button.active, .tv-quality-buttons button[aria-pressed="true"]) {
+  background: #5a189a;
+  color: #fffdf9;
+  box-shadow: 2px 3px 0 #2b1a3d55;
+}
+html:not([data-theme="cyber"]) :is(.mode-switch button:hover:not(.active), .tv-quality-buttons button:hover:not([aria-pressed="true"])) { background: #e3f4ff; color: #2b1a3d; }
+html:not([data-theme="cyber"]) :is(.primary, .tv-stretch-handle) { background: #5a189a; color: #fffdf9; }
+html:not([data-theme="cyber"]) .primary { border-radius: 12px; box-shadow: 3px 4px 0 #ffd23f; }
+html:not([data-theme="cyber"]) .primary:hover { background: #40106f; }
+html:not([data-theme="cyber"]) :is(#theme-toggle, .hint-button) {
+  background: #ffd23f;
+  color: #2b1a3d;
+  border: 2px solid #5a189a;
+  border-radius: 12px;
+  font-weight: 800;
+}
+html:not([data-theme="cyber"]) :is(#theme-toggle:hover, .hint-button:hover:not(:disabled)) { background: #ffec99; }
+html:not([data-theme="cyber"]) :is(.game-link, .back-link, .details summary, .section-heading h2 span, .tv-quiz h2 span) { color: #5a189a; }
+
+html:not([data-theme="cyber"]) :is(.image-card, .select-label select, .answers button, .tv-answers button) {
+  background: #fffdf9;
+  color: #2b1a3d;
+  border-color: #d2b8eb;
+  border-radius: 12px;
+}
+html:not([data-theme="cyber"]) :is(.image-card, .stats div, .details) { border-color: #d2b8eb; }
+html:not([data-theme="cyber"]) :is(.answers button:hover:not(:disabled), .tv-answers button:hover:not(:disabled)) { background: #e3f4ff; border-color: #5a189a; }
+html:not([data-theme="cyber"]) :is(.answers button:disabled, .tv-answers button:disabled, .hint-button:disabled) {
+  opacity: .65;
+  cursor: not-allowed;
+}
+html:not([data-theme="cyber"]) :is(.upload-zone, .game-image, .math-panel, .tv-signal) { background: #e3f4ff; }
+html:not([data-theme="cyber"]) .upload-zone { border-color: #5a189a; color: #2b1a3d; }
+html:not([data-theme="cyber"]) .upload-zone.dragging { background: #f1eaff; border-color: #40106f; }
+html:not([data-theme="cyber"]) :is(.stats .total, .tv-fact) { background: #f1eaff; border-color: #d2b8eb; }
+html:not([data-theme="cyber"]) :is(.notice, .feedback) { background: #fff1c9; color: #2b1a3d; border: 1px solid #ffd23f; }
+html:not([data-theme="cyber"]) .feedback.correct { background: #d9f7e9; border-color: #339a6d; }
+html:not([data-theme="cyber"]) .feedback.incorrect { background: #ffe4eb; border-color: #b64a70; }
+html:not([data-theme="cyber"]) :is(.notice-icon, .upload-zone .upload-error) { color: #9b3050; }
+html:not([data-theme="cyber"]) :is(.hero p, .challenge-intro p, .section-heading p, .upload-zone p, .card-bottom, .grid-option, .notice p, .details, .game-card p, .game-lead, .hint, .tv-quality p, .tv-stretch-label, .tv-tools p, .tv-note, .tv-fact p, .tv-signal p, .tv-quiz > p, .workspace-bottom p, .image-card .card-tag, footer) { color: #4b315c; }
+html:not([data-theme="cyber"]) :is(.step-label, .select-label, .stats div span, .range-row span, .range-ticks, .brand small, .tv-size-screen figcaption span, .detail-value span) { color: #624777; }
+html:not([data-theme="cyber"]) :is(.tv-size-screen figcaption, .tv-closeups figcaption) { color: #2b1a3d; }
+html:not([data-theme="cyber"]) :is(input[type="range"], input[type="checkbox"]) { accent-color: #5a189a; }
+html:not([data-theme="cyber"]) :is(button, select, input, summary):focus-visible { outline: 3px solid #5a189a; outline-offset: 3px; }
+
+@media (max-width: 480px) {
+  html:not([data-theme="cyber"]) :is(.workspace, .game-shell, .game-card) { box-shadow: 3px 4px 0 #5a189a24; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-theme="cyber"]) *, html:not([data-theme="cyber"]) *::before, html:not([data-theme="cyber"]) *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Cyber is a separate skin. The standard overrides above do not affect it. */
+html[data-theme="cyber"] {
+  color-scheme: dark;
+  color: #e6f4f5;
+  background: #03090b;
+  font-family: "Rajdhani", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
+}
+
+html[data-theme="cyber"] :is(.site-header, .workspace, .game-shell, .game-card) {
+  background: #071216;
+  border-color: #28515a;
+  box-shadow: 0 10px 32px #0008;
+}
+
+html[data-theme="cyber"] :is(.brand, .tv-size-screen figcaption, .tv-closeups figcaption) { color: #e6f4f5; }
+html[data-theme="cyber"] :is(.brand-accent, h1 em, .eyebrow, .live-dot, .card-bottom strong, .stats .total strong, .detail-value, .image-caption, .tv-fact > span) { color: #e8ff00; }
+html[data-theme="cyber"] :is(.brand-icon, .primary, .tv-stretch-handle) { background: #e8ff00; color: #03090b; }
+html[data-theme="cyber"] :is(.primary:hover, #theme-toggle:hover) { background: #c6dc00; color: #03090b; }
+html[data-theme="cyber"] :is(.hero-stamp, .game-icon) { background: #182935; color: #e8ff00; }
+html[data-theme="cyber"] .game-card:nth-child(2) .game-icon { color: #00d9f5; }
+html[data-theme="cyber"] .game-card:nth-child(3) .game-icon { color: #ff79d4; }
+html[data-theme="cyber"] .game-card:nth-child(4) .game-icon { color: #c3acff; }
+html[data-theme="cyber"] :is(.mode-switch, .tv-quality-buttons, .stats .total, .game-image, .math-panel, .tv-fact, .tv-signal, .hint-button) { background: #10242a; }
+html[data-theme="cyber"] :is(.image-card, .select-label select, .answers button, .tv-answers button, #theme-toggle) {
+  background: #0d1d23;
+  border-color: #38616a;
+  color: #e6f4f5;
+}
+html[data-theme="cyber"] :is(.mode-switch button.active, .tv-quality-buttons button[aria-pressed="true"]) { background: #26505a; color: #e8ff00; box-shadow: none; }
+html[data-theme="cyber"] :is(.mode-switch button, .tv-quality-buttons button) { color: #b1cbd0; }
+html[data-theme="cyber"] :is(.mode-switch button.active, .tv-quality-buttons button[aria-pressed="true"]) { color: #e8ff00; }
+html[data-theme="cyber"] :is(.upload-zone, .notice, .feedback, .details) { background: #10242a; border-color: #38616a; color: #e6f4f5; }
+html[data-theme="cyber"] .upload-zone.dragging { background: #20404a; border-color: #00d9f5; }
+html[data-theme="cyber"] :is(.feedback.correct, .feedback.incorrect) { background: #17333a; border: 1px solid #00d9f5; }
+html[data-theme="cyber"] .feedback.incorrect { border-color: #ff79d4; }
+html[data-theme="cyber"] :is(.hero p, .challenge-intro p, .section-heading p, .upload-zone p, .card-bottom, .grid-option, .notice p, .details, .game-card p, .game-lead, .hint, .tv-quality p, .tv-stretch-label, .tv-tools p, .tv-note, .tv-fact p, .tv-signal p, .tv-quiz > p, .workspace-bottom p, .image-card .card-tag, footer) { color: #b1cbd0; }
+html[data-theme="cyber"] :is(.step-label, .select-label, .stats div span, .range-row span, .range-ticks, .brand small, .tv-size-screen figcaption span, .detail-value span) { color: #a9c2ca; }
+html[data-theme="cyber"] :is(.details summary, .game-link, .back-link, .hint-button, .notice-icon, .tv-quiz h2 span, .section-heading h2 span) { color: #00d9f5; }
+html[data-theme="cyber"] :is(.stats div, .details, .image-card) { border-color: #38616a; }
+html[data-theme="cyber"] :is(.answers button:hover:not(:disabled), .tv-answers button:hover) { background: #20404a; border-color: #00d9f5; }
+html[data-theme="cyber"] :is(input[type="range"], input[type="checkbox"]) { accent-color: #e8ff00; }
+html[data-theme="cyber"] :is(button, select, input, summary):focus-visible { outline: 3px solid #e8ff00; outline-offset: 3px; }
+html[data-theme="cyber"] .tv-closeups canvas { border-color: #26383e; }
+html[data-theme="cyber"] .upload-zone .upload-error { color: #ff9cde; }
+html[data-theme="cyber"] #theme-toggle { border-color: #e8ff00; color: #e8ff00; }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="cyber"] *, html[data-theme="cyber"] *::before, html[data-theme="cyber"] *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

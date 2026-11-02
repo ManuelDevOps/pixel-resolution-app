@@ -6,6 +6,7 @@ const readError = 'Could not read this image. Try another JPEG, PNG or WebP file
 async function withExplore(run) {
   const nodes = new Map();
   const pending = [];
+  const defaults = [];
   const revoked = [];
   const painted = [];
   let failPreview = false;
@@ -18,9 +19,11 @@ async function withExplore(run) {
         checked: false, hidden: false, textContent: '', dataset: {}, width: 640, height: 480,
         files: [], classList: { toggle() {}, add() {}, remove() {} }, setAttribute() {},
         addEventListener(type, handler) { listeners[type] = handler; },
+        append(child) { child.parentElement = this; },
+        contains() { return false; },
         fire(type, extra = {}) { listeners[type]?.({ target: this, preventDefault() {}, ...extra }); },
         querySelectorAll() { return []; },
-        querySelector(selector) { return selector === 'option[value="photo"]' ? node('photo-option') : null; },
+        querySelector(selector) { return selector === 'option[value="photo"]' ? node('photo-option') : selector === 'option[value="default"]' ? node('default-option') : null; },
         getContext() {
           return {
             clearRect() {}, beginPath() {}, moveTo() {}, lineTo() {}, stroke() {},
@@ -36,6 +39,7 @@ async function withExplore(run) {
   };
   const previous = { document: globalThis.document, Image: globalThis.Image, URL: globalThis.URL, window: globalThis.window };
   globalThis.document = {
+    documentElement: node('html'),
     querySelector: selector => node(selector.slice(1)),
     createElement: () => ({ width: 0, height: 0, getContext: () => ({ drawImage(image) { painted.push({ id: 'offscreen', image }); } }) }),
   };
@@ -47,6 +51,7 @@ async function withExplore(run) {
   globalThis.Image = class {
     set src(value) {
       if (value.startsWith('data:')) { this.complete = true; this.naturalWidth = 320; this.naturalHeight = 240; }
+      else if (value === '/assets/landscape-720p.png') defaults.push(this);
       else pending.push(this);
     }
     fire(width = 800, height = 600) {
@@ -61,11 +66,37 @@ async function withExplore(run) {
       node('photo-input').fire('change');
       pending.at(-1).fire(width, height);
     };
-    await run({ node, upload, painted, revoked, failNextPreview: () => { failPreview = true; } });
+    await run({ node, upload, painted, revoked, defaults, failNextPreview: () => { failPreview = true; } });
   } finally {
     Object.assign(globalThis, previous);
   }
 }
+
+test('late included image does not replace a selected illustration or an uploaded photo; load failure keeps app usable', async () => {
+  await withExplore(({ node, upload, defaults }) => {
+    assert.equal(defaults.length, 1);
+    node('image-select').value = '1'; node('image-select').fire('change');
+    defaults[0].fire(1280, 720);
+    assert.equal(node('image-select').value, '1');
+    assert.equal(node('preview-size').textContent, '32 × 24 px');
+    upload(800, 600);
+    assert.equal(node('image-select').value, 'photo');
+    assert.equal(node('preview-size').textContent, '800 × 600 px');
+  });
+  await withExplore(({ node, upload, defaults }) => {
+    upload(800, 600);
+    defaults[0].fire(1280, 720);
+    assert.equal(node('image-select').value, 'photo');
+    assert.equal(node('preview-size').textContent, '800 × 600 px');
+  });
+  await withExplore(({ node, defaults }) => {
+    assert.equal(defaults.length, 1);
+    defaults[0].onerror();
+    assert.equal(node('preview-size').textContent, '32 × 24 px');
+    node('image-select').value = '2'; node('image-select').fire('change');
+    assert.equal(node('source-size').textContent, 'Sample illustration: 320 × 240 px');
+  });
+});
 
 test('sample resolution survives full-resolution photo defaults, replacement and mode changes until a shared step is chosen', async () => {
   await withExplore(({ node, upload }) => {

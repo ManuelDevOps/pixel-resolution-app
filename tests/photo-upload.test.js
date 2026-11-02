@@ -27,6 +27,7 @@ test('Explore chooser and drop keep samples and challenges intact, reject safely
   const nodes = new Map();
   const pending = [];
   const sampleImages = [];
+  const defaultImages = [];
   const revoked = [];
   const calls = [];
   let nextUrl = 0;
@@ -39,17 +40,20 @@ test('Explore chooser and drop keep samples and challenges intact, reject safely
         attributes: {}, classList: { toggle() {}, add() {}, remove() {} },
         setAttribute(key, value) { this.attributes[key] = value; }, getAttribute(key) { return this.attributes[key]; },
         addEventListener(type, handler) { listeners[type] = handler; },
+        append(child) { child.parentElement = this; },
+        contains() { return false; },
         fire(type, extra = {}) { return listeners[type]?.({ target: this, preventDefault() {}, ...extra }); },
         querySelectorAll() { return []; },
-        querySelector(selector) { return selector === 'option[value="photo"]' ? node('photo-option') : null; },
+        querySelector(selector) { return selector === 'option[value="photo"]' ? node('photo-option') : selector === 'option[value="default"]' ? node('default-option') : null; },
         getContext() { return { clearRect() {}, drawImage(...args) { calls.push([id, ...args]); }, beginPath() {}, moveTo() {}, lineTo() {}, stroke() {} }; },
       });
     }
     return nodes.get(id);
   };
   const old = { document: globalThis.document, Image: globalThis.Image, URL: globalThis.URL, window: globalThis.window };
-  globalThis.document = { querySelector: selector => node(selector.slice(1)), createElement: () => ({ width: 0, height: 0, getContext: () => ({ drawImage(...args) { calls.push(['offscreen', ...args]); } }) }) };
-  globalThis.window = { scrollTo() {} };
+  globalThis.document = { documentElement: node('html'), querySelector: selector => node(selector.slice(1)), createElement: () => ({ width: 0, height: 0, getContext: () => ({ drawImage(...args) { calls.push(['offscreen', ...args]); } }) }) };
+  const session = new Map();
+  globalThis.window = { scrollTo() {}, sessionStorage: { getItem: key => session.get(key), setItem: (key, value) => session.set(key, value) } };
   globalThis.URL = { createObjectURL: () => `blob:${++nextUrl}`, revokeObjectURL: url => revoked.push(url) };
   globalThis.Image = class {
     constructor() { this.complete = false; this.naturalWidth = 0; this.naturalHeight = 0; this.listeners = {}; }
@@ -58,7 +62,8 @@ test('Explore chooser and drop keep samples and challenges intact, reject safely
       if (value.startsWith('data:')) {
         sampleImages.push(this);
         if (sampleImages.length !== 1) { this.complete = true; this.naturalWidth = 320; this.naturalHeight = 240; }
-      } else pending.push(this);
+      } else if (value === '/assets/landscape-720p.png') defaultImages.push(this);
+      else pending.push(this);
     }
     addEventListener(type, callback) { this.listeners[type] = callback; }
     fire(type, width = 4000, height = 3000) {
@@ -70,9 +75,23 @@ test('Explore chooser and drop keep samples and challenges intact, reject safely
   };
   try {
     await import(`../src/app.js?photo-test=${Date.now()}`);
+    assert.equal(defaultImages.length, 1);
+    // A rejected or empty drop while the included image decodes must not cancel it.
+    node('drop-zone').fire('drop', { dataTransfer: { files: [{ type: 'image/gif', size: 10 }] } });
+    assert.equal(node('photo-error').textContent, 'Choose a JPEG, PNG or WebP image.');
+    node('drop-zone').fire('drop', { dataTransfer: { files: [] } });
+    assert.equal(pending.length, 0);
+    defaultImages[0].fire('load', 1280, 720);
+    assert.equal(node('default-option').disabled, false);
+    assert.equal(node('image-select').value, 'default');
+    assert.equal(node('source-size').textContent, 'Included landscape: 1280 × 720 px');
+    assert.equal(node('preview-size').textContent, '1280 × 720 px');
+    assert.equal(node('total').textContent, '921,600');
+    assert.equal(node('resolution').getAttribute('aria-valuetext'), '1280 × 720 px');
+    assert.ok(calls.some(c => c[0] === 'offscreen' && c[1] === defaultImages[0] && c[4] === 1280 && c[5] === 720));
+    node('image-select').value = '0'; node('image-select').fire('change');
     assert.equal(node('preview-size').textContent, '320 × 240 px');
     assert.equal(node('total').textContent, '76,800');
-    assert.equal(node('resolution').getAttribute('aria-valuetext'), '320 × 240 px');
     assert.match(node('explore').innerHTML, /id="resolution" type="range" min="0" max="5" value="5"/);
     assert.match(node('explore').innerHTML, /<span>320 px<\/span>/);
     assert.match(node('explore').innerHTML, /id="upload-label"[^>]*>Drag and drop the image here<\/label>/);
@@ -87,6 +106,12 @@ test('Explore chooser and drop keep samples and challenges intact, reject safely
     assert.equal(node('resolution').value, node('resolution').max);
     assert.equal(node('resolution').getAttribute?.('aria-valuetext'), '1200 × 1600 px');
     assert.equal(node('image-select').value, 'photo');
+    node('theme-toggle').fire('click');
+    assert.equal(node('html').dataset.theme, 'cyber');
+    assert.equal(node('theme-toggle').textContent, 'Standard theme');
+    assert.equal(session.get('pixel-lab-theme'), 'cyber');
+    assert.equal(node('image-select').value, 'photo');
+    assert.equal(node('preview-size').textContent, '1200 × 1600 px');
     assert.match(node('explore').innerHTML, /<option value="photo"/);
     assert.equal(node('original').height, 640);
     assert.equal(node('original').width, 480);
@@ -170,6 +195,11 @@ test('Explore chooser and drop keep samples and challenges intact, reject safely
     pending[6].fire('load');
     assert.equal(node('source-size').textContent, 'Sample illustration: 320 × 240 px');
     node('challenge-tab').fire('click');
+    assert.equal(node('challenge').hidden, false);
+    node('theme-toggle').fire('click');
+    assert.equal(node('html').dataset.theme, undefined);
+    assert.equal(node('theme-toggle').textContent, 'Cyber theme');
+    assert.equal(session.get('pixel-lab-theme'), 'standard');
     assert.equal(node('challenge').hidden, false);
     assert.equal(node('explore').hidden, true);
     assert.equal(nextUrl, 7); // browser-local object URLs, no upload request

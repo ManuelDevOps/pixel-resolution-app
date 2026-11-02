@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { request } from 'node:http';
 import { createServer } from 'node:net';
+import { createHash } from 'node:crypto';
 
 function get(port, path) {
   return new Promise((resolve, reject) => {
     const call = request({ hostname: '127.0.0.1', port, path }, response => {
-      let body = '';
-      response.setEncoding('utf8');
-      response.on('data', chunk => { body += chunk; });
-      response.on('end', () => resolve({ status: response.statusCode, body, headers: response.headers }));
+      const chunks = [];
+      response.on('data', chunk => { chunks.push(chunk); });
+      response.on('end', () => resolve({ status: response.statusCode, body: Buffer.concat(chunks).toString('utf8'), bytes: Buffer.concat(chunks), headers: response.headers }));
     });
     call.on('error', reject);
     call.end();
@@ -74,6 +74,28 @@ test('malformed request targets return a client error without stopping the publi
   assert.equal(tvLab.headers['content-type'], 'text/javascript; charset=utf-8');
   assert.equal(tvLab.headers['x-content-type-options'], 'nosniff');
   assert.match(tvLab.body, /initTvLab/);
+  const theme = await get(port, '/src/theme.js');
+  assert.equal(theme.status, 200);
+  assert.equal(theme.headers['content-type'], 'text/javascript; charset=utf-8');
+  assert.equal(theme.headers['x-content-type-options'], 'nosniff');
+  assert.match(theme.body, /export function initTheme/);
+  const photo = await get(port, '/assets/landscape-720p.png');
+  assert.equal(photo.status, 200);
+  assert.equal(photo.headers['content-type'], 'image/png');
+  assert.equal(photo.headers['x-content-type-options'], 'nosniff');
+  assert.equal(photo.bytes.length, 1383235);
+  assert.equal(createHash('sha256').update(photo.bytes).digest('hex'), 'f8acee575dbd22d23127934931c89a19f77f01ce0ab7782f26d0924338183615');
+  const tvPhoto = await get(port, '/assets/tv-photo.png');
+  assert.equal(tvPhoto.status, 200);
+  assert.equal(tvPhoto.headers['content-type'], 'image/png');
+  assert.equal(tvPhoto.headers['x-content-type-options'], 'nosniff');
+  assert.equal(tvPhoto.bytes.length, 1440875);
+  assert.equal(createHash('sha256').update(tvPhoto.bytes).digest('hex'), '26f14289474fad4c7903c9e7255e0e142ce7c1883c9518bc29fc898ef969b5c9');
+  for (const path of ['/assets/other.png', '/assets/../server.js', '/assets/%2e%2e/server.js', '/assets/landscape-720p.png/other', '/assets/tv-photo.png/other', '/assets/%2e%2e/tv-photo.png', '/assets/tv-photo.png%2fother', '/src/theme.js/other']) {
+    const forbidden = await get(port, path);
+    assert.equal(forbidden.status, 404, path);
+    assert.equal(forbidden.body, 'Not found', path);
+  }
   const missing = await get(port, '/not-allowed');
   assert.equal(missing.status, 404);
   assert.equal(missing.body, 'Not found');

@@ -8,6 +8,9 @@ const files = new Map([
   ['/src/app.js', ['src/app.js', 'text/javascript; charset=utf-8']],
   ['/src/logic.js', ['src/logic.js', 'text/javascript; charset=utf-8']],
   ['/src/tv-lab.js', ['src/tv-lab.js', 'text/javascript; charset=utf-8']],
+  ['/src/theme.js', ['src/theme.js', 'text/javascript; charset=utf-8']],
+  ['/assets/landscape-720p.png', ['assets/landscape-720p.png', 'image/png']],
+  ['/assets/tv-photo.png', ['assets/tv-photo.png', 'image/png']],
 ]);
 const port = Number(process.env.PORT || 3000);
 createServer(async (request, response) => {

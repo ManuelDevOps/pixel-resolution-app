@@ -1,10 +1,28 @@
 import { dimensions, imageBytes, guessPoints, lowestUseful, pixelCount, bestFit, validatePhoto, workingDimensions } from './logic.js';
 import { initTvLab } from './tv-lab.js';
+import { initTheme } from './theme.js';
+
+let storage;
+try { storage = window.sessionStorage; } catch { /* Storage can be disabled. */ }
+initTheme(document, storage);
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const explore = $('#explore');
 const challenge = $('#challenge');
 const tvLab = $('#tv-lab');
+const modeNav = $('.mode-switch');
+// Keep the one navigation element alive while Challenge replaces its content.
+let navigationFocus = null;
+function parkNavigation() {
+  navigationFocus = modeNav.contains(document.activeElement) ? document.activeElement : null;
+  $('.header-inner').append(modeNav);
+}
+function placeNavigation(mode) {
+  const focused = navigationFocus || (modeNav.contains(document.activeElement) ? document.activeElement : null);
+  $(`#${mode === 'tv' ? 'tv' : mode}-nav`).append(modeNav);
+  if (focused) focused.focus();
+  navigationFocus = null;
+}
 let tvLabReady = false;
 const steps = [8, 16, 32, 64, 128];
 const sampleSteps = [...steps, 320];
@@ -52,6 +70,7 @@ function setMode(mode) {
   explore.hidden = mode !== 'explore';
   challenge.hidden = mode !== 'challenge';
   tvLab.hidden = mode !== 'tv';
+  placeNavigation(mode);
   for (const [id, active] of [['explore-tab', mode === 'explore'], ['challenge-tab', mode === 'challenge'], ['tv-tab', mode === 'tv']]) {
     $('#' + id).classList.toggle('active', active);
     $('#' + id).setAttribute('aria-pressed', String(active));
@@ -63,19 +82,21 @@ $('#challenge-tab').addEventListener('click', () => setMode('challenge'));
 $('#tv-tab').addEventListener('click', () => setMode('tv'));
 
 explore.innerHTML = `
-  <div class="hero"><div><span class="eyebrow"><span>✳</span> THE PIXEL LAB</span><h1 id="explore-title">Small pixels.<br><em>Big picture.</em></h1><p>Every picture has a secret: it’s made of tiny squares. Change the resolution and see what happens.</p></div><div class="hero-stamp" aria-hidden="true">LOOK<br>CLOSER <span>↘</span></div></div>
-  <div class="workspace"><div class="section-heading"><div><span class="step-label">01 / EXPLORE</span><h2>Let’s look closer <span>✳</span></h2><p>Pick a picture, then adjust the resolution.</p></div><label class="select-label">YOUR IMAGE <select id="image-select"><option value="0">Mountain landscape</option><option value="1">Rocket launch</option><option value="2">Curious cat</option><option value="photo" disabled>Your photo</option></select></label></div>
+  <div class="hero"><div><span class="eyebrow"><span>✳</span> THE PIXEL LAB</span><h1 id="explore-title">Small pixels. <em>Big picture.</em></h1><p>Every picture has a secret: it’s made of tiny squares. Change the resolution and see what happens.</p></div><div class="hero-stamp" aria-hidden="true">LOOK<br>CLOSER <span>↘</span></div></div>
+  <div class="workspace"><div class="section-heading"><div><span class="step-label">01 / EXPLORE</span><h2>Let’s look closer <span>✳</span></h2><p>Pick a picture, then adjust the resolution.</p></div><div id="explore-nav" class="mode-nav-row"></div><label class="select-label">YOUR IMAGE <select id="image-select"><option value="default" disabled>Included landscape</option><option value="0">Mountain landscape</option><option value="1">Rocket launch</option><option value="2">Curious cat</option><option value="photo" disabled>Your photo</option></select></label></div>
   <div id="drop-zone" class="upload-zone"><label id="upload-label" for="photo-input">Drag and drop the image here</label><span>or</span><input id="photo-input" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Choose an image"><p>JPEG, PNG or WebP · up to 100 MB · processed only in your browser</p><p id="photo-error" class="upload-error" role="alert" aria-live="polite"></p></div>
   <div class="comparison"><figure class="image-card"><figcaption><span>ORIGINAL IMAGE</span><span class="card-tag">THE FULL PICTURE</span></figcaption><div class="picture"><canvas id="original" width="640" height="480" aria-label="Original illustration"></canvas></div><div class="card-bottom"><span id="source-size">Sample illustration: 320 × 240 px</span><span>✳</span></div></figure><figure class="image-card preview-card"><figcaption><span>PIXELATED PREVIEW</span><span class="live-dot">● LIVE</span></figcaption><div class="picture"><canvas id="preview" width="640" height="480" aria-label="Pixelated illustration"></canvas></div><div class="card-bottom">Your resolution <strong id="preview-size"></strong></div></figure></div>
   <div class="controls"><div class="resolution-head"><div><span class="step-label">MAKE A CHANGE</span><h3>Resolution <span>↔</span></h3></div><label class="grid-option"><input type="checkbox" id="grid"> Show pixel grid</label></div><div class="range-row"><span>LESS DETAIL</span><input id="resolution" type="range" min="0" max="5" value="5" step="1" aria-label="Image resolution"><span>MORE DETAIL</span></div><div class="range-ticks"><span>8 px</span><span>16 px</span><span>32 px</span><span>64 px</span><span>128 px</span><span>320 px</span></div><div class="stats"><div><span>WIDTH</span><strong id="width"></strong></div><b>×</b><div><span>HEIGHT</span><strong id="height"></strong></div><b>=</b><div class="total"><span>TOTAL PIXELS</span><strong id="total"></strong></div></div><p id="grid-note" class="hint" hidden>The grid is shown at 32 pixels wide or below, so individual squares remain visible.</p></div>
   <div class="notice"><span class="notice-icon">✳</span><div><strong>Something to think about</strong><p>What happens to the detail as you lower the resolution?</p></div></div>
   <details class="details"><summary>Estimated uncompressed size <span>＋</span></summary><p id="storage"></p><p>Real file sizes can differ because of compression and file information.</p></details>
   <div class="workspace-bottom"><p>Ready to put your pixels to the test?</p><button class="primary" id="try-challenge">Try a challenge <span>↗</span></button></div></div>`;
+placeNavigation('explore');
 const select = $('#image-select');
 let sampleStep = Number($('#resolution').value);
 let photo = null;
 let requestId = 0;
 let pendingUrl = null;
+let includedImage = null;
 function releaseUrl() {
   if (pendingUrl) URL.revokeObjectURL(pendingUrl);
   pendingUrl = null;
@@ -113,7 +134,7 @@ function updateExplore() {
   if (photo) {
     paintPhoto($('#original'), photo.width);
     paintPhoto($('#preview'), width, $('#grid').checked);
-    $('#source-size').textContent = `Working image: ${photo.width} × ${photo.height} px (original file unchanged)`;
+    $('#source-size').textContent = select.value === 'default' ? `Included landscape: ${photo.width} × ${photo.height} px` : `Working image: ${photo.width} × ${photo.height} px (original file unchanged)`;
   } else {
     // Switching back to a sample restores the fixed artwork canvas size.
     for (const canvas of [$('#original'), $('#preview')]) { canvas.width = 640; canvas.height = 480; }
@@ -129,11 +150,12 @@ function updateExplore() {
   $('#grid-note').hidden = !$('#grid').checked || width <= 32;
 }
 function loadPhoto(file) {
-  const id = ++requestId;
-  releaseUrl();
   const error = $('#photo-error');
   error.textContent = validatePhoto(file);
+  // A rejected file starts no decode, so it must not cancel a load in progress.
   if (error.textContent) return;
+  const id = ++requestId;
+  releaseUrl();
   const img = new Image();
   try {
     const url = URL.createObjectURL(file);
@@ -198,9 +220,9 @@ dropZone.addEventListener('drop', event => {
 select.addEventListener('change', () => {
   ++requestId; releaseUrl();
   if (select.value !== 'photo') {
-    photo = null;
+    photo = select.value === 'default' ? includedImage : null;
     select.querySelector('option[value="photo"]').disabled = true;
-    setResolutionRange(null, sampleStep);
+    setResolutionRange(photo?.width, photo ? resolutionSteps(photo.width).length - 1 : sampleStep);
   }
   $('#photo-error').textContent = '';
   updateExplore();
@@ -215,6 +237,35 @@ $('#grid').addEventListener('change', updateExplore);
 $('#try-challenge').addEventListener('click', () => setMode('challenge'));
 updateExplore();
 
+// Loading the included image must never displace a choice made while it decodes.
+const initialRequest = requestId;
+const defaultPhoto = new Image();
+defaultPhoto.onload = () => {
+  if (requestId !== initialRequest) return;
+  try {
+    const size = workingDimensions(defaultPhoto.naturalWidth, defaultPhoto.naturalHeight);
+    if (!size) return;
+    const previous = { photo, selection: select.value, step: Number($('#resolution').value) };
+    try {
+      includedImage = { image: defaultPhoto, ...size };
+      select.querySelector('option[value="default"]').disabled = false;
+      photo = includedImage;
+      select.value = 'default';
+      setResolutionRange(size.width, resolutionSteps(size.width).length - 1);
+      updateExplore();
+    } catch {
+      includedImage = null;
+      select.querySelector('option[value="default"]').disabled = true;
+      photo = previous.photo;
+      select.value = previous.selection;
+      setResolutionRange(photo?.width, previous.step);
+      updateExplore();
+    }
+  } catch { /* Keep the usable sample if the included image cannot be rendered. */ }
+};
+defaultPhoto.onerror = () => { /* The sample remains available if the asset is unavailable. */ };
+defaultPhoto.src = '/assets/landscape-720p.png';
+
 const games = [
   { id: 'guess', number: '01', icon: '◉', title: 'Guess the image', text: 'Can you recognise a picture with fewer pixels?' },
   { id: 'detail', number: '02', icon: '⌕', title: 'Find the detail', text: 'Find the lowest resolution that reveals a detail.' },
@@ -223,7 +274,9 @@ const games = [
 ];
 let gameState = {};
 function showGames() {
-  challenge.innerHTML = `<div class="challenge-intro"><span class="eyebrow"><span>✳</span> THE CHALLENGE ZONE</span><h1 id="challenge-title">Ready, set, <em>pixel.</em></h1><p>Put your curiosity to the test. Pick a challenge to get started.</p></div><div class="game-grid">${games.map(g => `<article class="game-card"><div class="game-top"><span class="game-icon">${g.icon}</span><span class="step-label">CHALLENGE ${g.number}</span></div><h2>${g.title}</h2><p>${g.text}</p><button class="game-link" data-game="${g.id}">Let's play <span>↗</span></button></article>`).join('')}</div><div class="notice challenge-notice"><span class="notice-icon">✳</span><div><strong>Curious about something?</strong><p>You can always switch back to Explore and try it out.</p></div></div>`;
+  parkNavigation();
+  challenge.innerHTML = `<div class="challenge-intro"><span class="eyebrow"><span>✳</span> THE CHALLENGE ZONE</span><h1 id="challenge-title">Ready, set, <em>pixel.</em></h1><p>Put your curiosity to the test. Pick a challenge to get started.</p></div><div class="workspace challenge-workspace"><div id="challenge-nav" class="mode-nav-row"></div><div class="game-grid">${games.map(g => `<article class="game-card"><div class="game-top"><span class="game-icon">${g.icon}</span><span class="step-label">CHALLENGE ${g.number}</span></div><h2>${g.title}</h2><p>${g.text}</p><button class="game-link" data-game="${g.id}">Let's play <span>↗</span></button></article>`).join('')}</div><div class="notice challenge-notice"><span class="notice-icon">✳</span><div><strong>Curious about something?</strong><p>You can always switch back to Explore and try it out.</p></div></div></div>`;
+  placeNavigation('challenge');
   challenge.querySelectorAll('[data-game]').forEach(button => button.addEventListener('click', () => startGame(button.dataset.game)));
 }
 function startGame(id) { gameState = { id, round: 0, score: 0, hints: 0, answered: false, detailStep: 0 }; renderGame(); }
@@ -233,7 +286,9 @@ const questions = [
   { image: 0, answer: 'Mountain', options: ['Mountain', 'Castle', 'Wave'] },
 ];
 function gameFrame(title, content, meta = '') {
-  challenge.innerHTML = `<div class="game-shell"><div class="game-heading"><button class="back-link" id="all-games">← All challenges</button><span class="step-label">${meta}</span></div><h1 id="challenge-title">${title}</h1>${content}<div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div></div>`;
+  parkNavigation();
+  challenge.innerHTML = `<div class="game-shell"><div id="challenge-nav" class="mode-nav-row"></div><div class="game-heading"><button class="back-link" id="all-games">← All challenges</button><span class="step-label">${meta}</span></div><h1 id="challenge-title">${title}</h1>${content}<div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div></div>`;
+  placeNavigation('challenge');
   $('#all-games').addEventListener('click', showGames);
 }
 function feedback(correct, text, next) {
@@ -274,3 +329,4 @@ function renderGame() {
   }
 }
 showGames();
+placeNavigation('explore');
