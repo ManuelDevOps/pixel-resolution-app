@@ -21,10 +21,10 @@ The app is published as the Cloudflare Worker `pixel-resolution-app` at <https:/
 Deploy from the repository root with an authenticated Wrangler session:
 
 ```sh
-npx wrangler deploy
+npx wrangler@4.157.0 deploy
 ```
 
-`.assetsignore` is an allow list: only `index.html`, `_headers`, `src/` and `assets/` are uploaded, so Git data, tests, docs and `server.js` stay private. `_headers` adds `X-Content-Type-Options: nosniff`, as the local server does. Add any new public file or folder to `.assetsignore` before deploying.
+`.assetsignore` is an allow list: only `index.html`, `_headers`, `src/` and `assets/` are uploaded, so Git data, tests, docs and `server.js` stay private. `_headers` adds `X-Content-Type-Options: nosniff`, as the local server does. New files under `src/` or `assets/` are published automatically, including dotfiles, so keep secrets out of those folders. A new public file or folder at the repository root must be added to `.assetsignore` before deploying.
 
 ## Theme
 
