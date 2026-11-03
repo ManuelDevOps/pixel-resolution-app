@@ -1,0 +1,8 @@
+# Publish only the app. Everything else (Git data, tests, docs, server.js, tool caches) stays private.
+*
+!index.html
+!_headers
+!src/
+!src/**
+!assets/
+!assets/**

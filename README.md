@@ -14,6 +14,18 @@ Open <http://127.0.0.1:3000>. Stop the server with Ctrl+C. To choose a different
 
 Run the automated checks with `npm test`.
 
+## Deploy
+
+The app is published as the Cloudflare Worker `pixel-resolution-app` at <https://pixelresolution.applications4education.com>, which is listed on <https://applications4education.com>. `wrangler.jsonc` binds that custom domain and disables the `workers.dev` address.
+
+Deploy from the repository root with an authenticated Wrangler session:
+
+```sh
+npx wrangler deploy
+```
+
+`.assetsignore` is an allow list: only `index.html`, `_headers`, `src/` and `assets/` are uploaded, so Git data, tests, docs and `server.js` stay private. `_headers` adds `X-Content-Type-Options: nosniff`, as the local server does. Add any new public file or folder to `.assetsignore` before deploying.
+
 ## Theme
 
 The default **Standard** theme uses Colour Depth's warm pastel gradient, purple headings and active controls, yellow outlines and playful rounded panels across Explore, TV Lab and Jumper Lab. Select **Cyber theme** in the header for the optional dark skin; the button then says **Standard theme** to switch back. Switching themes does not restart the page or change your picture or settings. Your choice lasts for the current browser session when session storage is available; if storage is blocked, the button still works until you reload. No external fonts or theme assets are requested.

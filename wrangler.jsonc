@@ -1,0 +1,12 @@
+{
+  "name": "pixel-resolution-app",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": false,
+  "routes": [
+    {
+      "pattern": "pixelresolution.applications4education.com",
+      "custom_domain": true
+    }
+  ],
+  "assets": { "directory": "./" }
+}

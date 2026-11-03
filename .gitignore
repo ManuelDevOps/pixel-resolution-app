@@ -9,3 +9,6 @@ odd/
 node_modules/
 .env
 .env.*
+
+# Cloudflare Wrangler local state
+.wrangler/
