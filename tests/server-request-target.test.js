@@ -74,6 +74,11 @@ test('malformed request targets return a client error without stopping the publi
   assert.equal(tvLab.headers['content-type'], 'text/javascript; charset=utf-8');
   assert.equal(tvLab.headers['x-content-type-options'], 'nosniff');
   assert.match(tvLab.body, /initTvLab/);
+  const jumper = await get(port, '/src/jumper-lab.js');
+  assert.equal(jumper.status, 200);
+  assert.equal(jumper.headers['content-type'], 'text/javascript; charset=utf-8');
+  assert.equal(jumper.headers['x-content-type-options'], 'nosniff');
+  assert.match(jumper.body, /initJumperLab/);
   const theme = await get(port, '/src/theme.js');
   assert.equal(theme.status, 200);
   assert.equal(theme.headers['content-type'], 'text/javascript; charset=utf-8');
@@ -91,7 +96,7 @@ test('malformed request targets return a client error without stopping the publi
   assert.equal(tvPhoto.headers['x-content-type-options'], 'nosniff');
   assert.equal(tvPhoto.bytes.length, 1440875);
   assert.equal(createHash('sha256').update(tvPhoto.bytes).digest('hex'), '26f14289474fad4c7903c9e7255e0e142ce7c1883c9518bc29fc898ef969b5c9');
-  for (const path of ['/assets/other.png', '/assets/../server.js', '/assets/%2e%2e/server.js', '/assets/landscape-720p.png/other', '/assets/tv-photo.png/other', '/assets/%2e%2e/tv-photo.png', '/assets/tv-photo.png%2fother', '/src/theme.js/other']) {
+  for (const path of ['/assets/other.png', '/assets/../server.js', '/assets/%2e%2e/server.js', '/assets/landscape-720p.png/other', '/assets/tv-photo.png/other', '/assets/%2e%2e/tv-photo.png', '/assets/tv-photo.png%2fother', '/src/theme.js/other', '/src/jumper-lab.js/x', '/src/Jumper-lab.js']) {
     const forbidden = await get(port, path);
     assert.equal(forbidden.status, 404, path);
     assert.equal(forbidden.body, 'Not found', path);

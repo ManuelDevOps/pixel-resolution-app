@@ -2,16 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-test('navigation offers only Explore then TV Lab and no Challenge page', () => {
+test('navigation offers Explore, TV Lab, Jumper Lab in order and no Challenge page', () => {
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const buttons = [...html.matchAll(/<nav class="mode-switch"[^>]*>([\s\S]*?)<\/nav>/g)]
     .flatMap(([, content]) => [...content.matchAll(/<button id="([^"]+)"[^>]*>(.*?)<\/button>/g)].map(([, id]) => id));
-  assert.deepEqual(buttons, ['explore-tab', 'tv-tab']);
+  assert.deepEqual(buttons, ['explore-tab', 'tv-tab', 'jumper-tab']);
   assert.doesNotMatch(html, /<section id="challenge"\b/);
 });
 
 // A small DOM fixture exercises the public buttons and their real parent relationships.
-test('mode navigation stays inside each workspace through Explore and lazy TV startup', async () => {
+test('mode navigation stays inside each workspace through Explore and lazy lab startup', async () => {
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const elements = new Map();
   const pendingImages = [];
@@ -19,7 +19,7 @@ test('mode navigation stays inside each workspace through Explore and lazy TV st
     if (!elements.has(id)) {
       const events = {};
       const e = {
-        id, hidden: id === 'tv-closeups' || id === 'tv-zoom-note', value: id === 'resolution' ? '5' : '0', checked: false,
+        id, hidden: id === 'tv-closeups' || id === 'tv-zoom-note' || id === 'jumper-lab', value: id === 'resolution' ? '5' : id === 'jumper-motif' ? 'heart' : id === 'jumper-x' || id === 'jumper-y' ? '100' : '0', checked: false,
         textContent: '', dataset: {}, style: {}, width: 640, height: 480, files: [],
         classList: { toggle() {}, add() {}, remove() {} },
         setAttribute(key, value) { this[key] = value; },
@@ -33,21 +33,21 @@ test('mode navigation stays inside each workspace through Explore and lazy TV st
         },
         querySelector(selector) { return element(selector === 'option[value="photo"]' ? 'photo-option' : selector === 'option[value="default"]' ? 'default-option' : selector.startsWith('#') ? selector.slice(1) : selector); },
         querySelectorAll() { return []; },
-        getContext() { return { drawImage() {}, clearRect() {}, fillRect() {}, save() {}, restore() {}, scale() {}, setTransform() {}, beginPath() {}, arc() {}, fill() {}, quadraticCurveTo() {}, strokeRect() {}, fillText() {}, moveTo() {}, lineTo() {}, stroke() {} }; },
+        getContext() { return { drawImage() {}, clearRect() {}, fillRect() {}, save() {}, restore() {}, scale() {}, translate() {}, setTransform() {}, beginPath() {}, arc() {}, ellipse() {}, closePath() {}, fill() {}, clip() {}, quadraticCurveTo() {}, strokeRect() {}, fillText() {}, moveTo() {}, lineTo() {}, stroke() {} }; },
         getBoundingClientRect() { return { width: 700 }; },
       };
       Object.defineProperty(e, 'innerHTML', {
         get() { return this.markup || ''; },
         set(markup) { this.markup = markup; },
       });
-      if (id.startsWith('[data-tv-size=')) e.parentElement = { getBoundingClientRect() { return { width: 700 }; } };
+      if (id.startsWith('[data-tv-size=') || id === 'jumper-canvas') e.parentElement = { getBoundingClientRect() { return { width: 700 }; } };
       elements.set(id, e);
     }
     return elements.get(id);
   };
   const nav = element('mode-switch');
   nav.contains = child => nav.buttons.includes(child);
-  nav.buttons = [...html.matchAll(/<button id="(explore-tab|tv-tab)"[^>]*>(.*?)<\/button>/g)]
+  nav.buttons = [...html.matchAll(/<button id="(explore-tab|tv-tab|jumper-tab)"[^>]*>(.*?)<\/button>/g)]
     .map(([, id, label]) => { const button = element(id); button['aria-pressed'] = id === 'explore-tab' ? 'true' : 'false'; button.textContent = label.replace(/<span aria-hidden="true">.*?<\/span>/g, '').replace(/<[^>]*>/g, '').trim(); return button; });
   nav.parentElement = element('header-inner');
   const previous = { document: globalThis.document, window: globalThis.window, Image: globalThis.Image, URL: globalThis.URL };
@@ -64,10 +64,10 @@ test('mode navigation stays inside each workspace through Explore and lazy TV st
   };
   const check = (parent, selected) => {
     assert.equal(nav.parentElement, element(parent), `nav in ${parent}`);
-    assert.deepEqual(nav.buttons.map(button => button.textContent.trim()), ['Explore', 'TV Lab']);
+    assert.deepEqual(nav.buttons.map(button => button.textContent.trim()), ['Explore', 'TV Lab', 'Jumper Lab']);
     assert.equal(nav.buttons.filter(button => button['aria-pressed'] === 'true').length, 1);
     assert.equal(element(selected)['aria-pressed'], 'true');
-    assert.equal(new Set(nav.buttons).size, 2);
+    assert.equal(new Set(nav.buttons).size, 3);
   };
   try {
     assert.equal((html.match(/id="explore-tab"/g) || []).length, 1);
@@ -91,5 +91,19 @@ test('mode navigation stays inside each workspace through Explore and lazy TV st
     assert.equal(document.activeElement, element('image-select'), 'programmatic mode changes do not steal focus from other controls');
     assert.equal(element('tv-closeups').hidden, false);
     assert.equal(element('[data-tv-stretch="70"]').value, '75');
+    element('jumper-tab').focus(); element('jumper-tab').click(); check('jumper-nav', 'jumper-tab');
+    assert.equal(document.activeElement, element('jumper-tab'));
+    assert.equal(element('jumper-lab').hidden, false);
+    element('jumper-motif').value = 'star'; element('jumper-motif').fire('change');
+    element('jumper-x').value = '200'; element('jumper-x').fire('input');
+    element('explore-tab').click(); check('explore-nav', 'explore-tab');
+    assert.equal(element('jumper-lab').hidden, true);
+    assert.equal(element('image-select').value, '1');
+    assert.equal(element('resolution').value, '2');
+    element('tv-tab').click(); check('tv-nav', 'tv-tab');
+    assert.equal(element('[data-tv-stretch="70"]').value, '75');
+    element('jumper-tab').click(); check('jumper-nav', 'jumper-tab');
+    assert.equal(element('jumper-motif').value, 'star');
+    assert.equal(element('jumper-x').value, '200');
   } finally { Object.assign(globalThis, previous); }
 });

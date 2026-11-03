@@ -196,20 +196,20 @@ h1 em {
   grid-template-columns:max-content minmax(0,1fr) max-content;
   align-items:center
 }
-/* TV Lab centres the navigation in the space beside its heading, like Explore. */
-#tv-lab .section-heading {
+/* Both labs centre the navigation in the space beside their headings. */
+:is(#tv-lab, #jumper-lab) .section-heading {
   display:grid;
   grid-template-columns:max-content minmax(0,1fr);
   align-items:center
 }
-:is(#explore, #tv-lab) .mode-nav-row { justify-content:center }
+:is(#explore, #tv-lab, #jumper-lab) .mode-nav-row { justify-content:center }
 .mode-nav-row { display:flex; justify-content:flex-end; min-width:0 }
 @media (max-width:950px) {
   #explore .section-heading { grid-template-columns:minmax(0,1fr) auto }
   #explore .select-label { grid-column:1 / -1; justify-self:end }
 }
 @media (max-width:750px) {
-  :is(#explore, #tv-lab) .section-heading { grid-template-columns:minmax(0,1fr) }
+  :is(#explore, #tv-lab, #jumper-lab) .section-heading { grid-template-columns:minmax(0,1fr) }
   #explore .select-label { justify-self:stretch }
   .mode-nav-row { justify-content:flex-start }
   .mode-switch { max-width:100% }
@@ -780,6 +780,22 @@ footer {
   .mode-switch button { flex: 1; min-width:0; padding:9px 5px; font-size:11px; }
 }
 
+/* Jumper Lab */
+.jumper-choice { width:fit-content; max-width:100%; margin-bottom:16px; }
+.jumper-frame { width:100%; max-width:720px; margin:auto; border-radius:14px; background:#f1edfc; overflow-x:auto; overflow-y:hidden; }
+.jumper-frame canvas { display:block; max-width:none; }
+.jumper-controls { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2fr); gap:12px 20px; align-items:center; max-width:720px; margin:24px auto 0; }
+.jumper-controls label { font-size:13px; font-weight:700; color:#777588; }
+.jumper-controls output { float:right; margin-left:12px; font-variant-numeric:tabular-nums; }
+.jumper-controls input { min-width:0; }
+.jumper-controls button { grid-column:1 / -1; justify-self:start; margin:0; }
+.jumper-stats { max-width:720px; margin:20px auto 0; font-size:13px; font-weight:700; line-height:1.7; }
+@media (max-width:480px) {
+  .jumper-choice { width:100%; }
+  .jumper-controls { grid-template-columns:minmax(0,1fr); gap:8px; }
+  .jumper-controls input { margin-bottom:8px; }
+}
+
 /* Standard skin: Colour Depth's playful palette, without changing the lab layout or Cyber. */
 html:not([data-theme="cyber"]) {
   color-scheme: light;
@@ -850,12 +866,12 @@ html:not([data-theme="cyber"]) :is(.tv-answers button:disabled, .hint-button:dis
 html:not([data-theme="cyber"]) :is(.upload-zone, .tv-signal) { background: #e3f4ff; }
 html:not([data-theme="cyber"]) .upload-zone { border-color: #5a189a; color: #2b1a3d; }
 html:not([data-theme="cyber"]) .upload-zone.dragging { background: #f1eaff; border-color: #40106f; }
-html:not([data-theme="cyber"]) :is(.stats .total, .tv-fact) { background: #f1eaff; border-color: #d2b8eb; }
+html:not([data-theme="cyber"]) :is(.stats .total, .tv-fact, .jumper-frame) { background: #f1eaff; border-color: #d2b8eb; }
 html:not([data-theme="cyber"]) :is(.notice, .feedback) { background: #fff1c9; color: #2b1a3d; border: 1px solid #ffd23f; }
 html:not([data-theme="cyber"]) .feedback.correct { background: #d9f7e9; border-color: #339a6d; }
 html:not([data-theme="cyber"]) .feedback.incorrect { background: #ffe4eb; border-color: #b64a70; }
 html:not([data-theme="cyber"]) :is(.notice-icon, .upload-zone .upload-error) { color: #9b3050; }
-html:not([data-theme="cyber"]) :is(.hero p, .section-heading p, .upload-zone p, .card-bottom, .grid-option, .notice p, .tv-stretch-label, .tv-tools p, .tv-note, .tv-fact p, .tv-signal p, .tv-quiz > p, .image-card .card-tag, footer) { color: #4b315c; }
+html:not([data-theme="cyber"]) :is(.hero p, .section-heading p, .upload-zone p, .card-bottom, .grid-option, .notice p, .tv-stretch-label, .tv-tools p, .tv-note, .tv-fact p, .tv-signal p, .tv-quiz > p, .image-card .card-tag, .jumper-controls label, footer) { color: #4b315c; }
 html:not([data-theme="cyber"]) :is(.step-label, .select-label, .stats div span, .range-row span, .range-ticks, .brand small, .tv-size-screen figcaption span, .tv-resolution) { color: #624777; }
 html:not([data-theme="cyber"]) :is(.tv-size-screen figcaption, .tv-closeups figcaption) { color: #2b1a3d; }
 html:not([data-theme="cyber"]) :is(input[type="range"], input[type="checkbox"]) { accent-color: #5a189a; }
@@ -890,7 +906,7 @@ html[data-theme="cyber"] :is(.brand, .tv-size-screen figcaption, .tv-closeups fi
 html[data-theme="cyber"] :is(.brand-accent, h1 em, .eyebrow, .live-dot, .card-bottom strong, .stats .total strong, .tv-fact > span) { color: #e8ff00; }
 html[data-theme="cyber"] :is(.brand-icon, .tv-stretch-handle) { background: #e8ff00; color: #03090b; }
 html[data-theme="cyber"] #theme-toggle:hover { background: #c6dc00; color: #03090b; }
-html[data-theme="cyber"] :is(.mode-switch, .stats .total, .tv-fact, .tv-signal, .hint-button) { background: #10242a; }
+html[data-theme="cyber"] :is(.mode-switch, .stats .total, .tv-fact, .tv-signal, .hint-button, .jumper-frame) { background: #10242a; }
 html[data-theme="cyber"] :is(.image-card, .select-label select, .tv-answers button, #theme-toggle) {
   background: #0d1d23;
   border-color: #38616a;
@@ -903,7 +919,7 @@ html[data-theme="cyber"] :is(.upload-zone, .notice, .feedback) { background: #10
 html[data-theme="cyber"] .upload-zone.dragging { background: #20404a; border-color: #00d9f5; }
 html[data-theme="cyber"] :is(.feedback.correct, .feedback.incorrect) { background: #17333a; border: 1px solid #00d9f5; }
 html[data-theme="cyber"] .feedback.incorrect { border-color: #ff79d4; }
-html[data-theme="cyber"] :is(.hero p, .section-heading p, .upload-zone p, .card-bottom, .grid-option, .notice p, .tv-stretch-label, .tv-tools p, .tv-note, .tv-fact p, .tv-signal p, .tv-quiz > p, .image-card .card-tag, footer) { color: #b1cbd0; }
+html[data-theme="cyber"] :is(.hero p, .section-heading p, .upload-zone p, .card-bottom, .grid-option, .notice p, .tv-stretch-label, .tv-tools p, .tv-note, .tv-fact p, .tv-signal p, .tv-quiz > p, .image-card .card-tag, .jumper-controls label, footer) { color: #b1cbd0; }
 html[data-theme="cyber"] :is(.step-label, .select-label, .stats div span, .range-row span, .range-ticks, .brand small, .tv-size-screen figcaption span, .tv-resolution) { color: #a9c2ca; }
 html[data-theme="cyber"] :is(.hint-button, .notice-icon, .tv-quiz h2 span, .section-heading h2 span) { color: #00d9f5; }
 html[data-theme="cyber"] :is(.stats div, .image-card) { border-color: #38616a; }

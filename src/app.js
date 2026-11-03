@@ -1,5 +1,6 @@
 import { dimensions, pixelCount, validatePhoto, workingDimensions } from './logic.js';
 import { initTvLab } from './tv-lab.js';
+import { initJumperLab } from './jumper-lab.js';
 import { initTheme } from './theme.js';
 
 let storage;
@@ -9,6 +10,7 @@ initTheme(document, storage);
 const $ = (selector, root = document) => root.querySelector(selector);
 const explore = $('#explore');
 const tvLab = $('#tv-lab');
+const jumperLab = $('#jumper-lab');
 const modeNav = $('.mode-switch');
 function placeNavigation(mode) {
   const focused = modeNav.contains(document.activeElement) ? document.activeElement : null;
@@ -16,6 +18,7 @@ function placeNavigation(mode) {
   if (focused) focused.focus();
 }
 let tvLabReady = false;
+let jumperLabReady = false;
 const steps = [8, 16, 32, 64, 128];
 const sampleSteps = [...steps, 320];
 const resolutionSteps = width => width ? [...steps.filter(step => step < width), width] : sampleSteps;
@@ -58,10 +61,15 @@ function setMode(mode) {
     initTvLab(tvLab);
     tvLabReady = true;
   }
+  if (mode === 'jumper' && !jumperLabReady) {
+    initJumperLab(jumperLab);
+    jumperLabReady = true;
+  }
   explore.hidden = mode !== 'explore';
   tvLab.hidden = mode !== 'tv';
+  jumperLab.hidden = mode !== 'jumper';
   placeNavigation(mode);
-  for (const [id, active] of [['explore-tab', mode === 'explore'], ['tv-tab', mode === 'tv']]) {
+  for (const [id, active] of [['explore-tab', mode === 'explore'], ['tv-tab', mode === 'tv'], ['jumper-tab', mode === 'jumper']]) {
     $('#' + id).classList.toggle('active', active);
     $('#' + id).setAttribute('aria-pressed', String(active));
   }
@@ -69,6 +77,7 @@ function setMode(mode) {
 }
 $('#explore-tab').addEventListener('click', () => setMode('explore'));
 $('#tv-tab').addEventListener('click', () => setMode('tv'));
+$('#jumper-tab').addEventListener('click', () => setMode('jumper'));
 
 explore.innerHTML = `
   <div class="hero"><div><span class="eyebrow"><span>✳</span> THE PIXEL LAB</span><h1 id="explore-title">Small pixels. <em>Big picture.</em></h1><p>Every picture has a secret: it’s made of tiny squares. Change the resolution and see what happens.</p></div></div>
