@@ -12,7 +12,18 @@ npm start
 
 Open <http://127.0.0.1:3000>. Stop the server with Ctrl+C. To choose a different port, set the `PORT` environment variable before starting.
 
-Run the automated checks with `npm test`.
+Run the fast unit checks with `npm test`.
+
+## Browser tests
+
+One-time setup (downloads Playwright's Chromium browser as well as the dev-only dependency):
+
+```sh
+npm install
+npx playwright install chromium
+```
+
+Run `npm run test:browser` to start the local server on port 3100 and test the app in Chromium. The tests check layout and navigation at 320, 768 and 1440 px in both themes, TV blur and captions, jumper stretching and scrolling, state across page switches and theme reloads, and browser console errors. They run separately from `npm test`; browser test files, configuration and dependencies are not published to Cloudflare.
 
 ## Deploy
 

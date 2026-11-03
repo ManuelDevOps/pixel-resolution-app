@@ -1,5 +1,8 @@
 # Local browser automation artifacts
 .playwright-mcp/
+test-results/
+playwright-report/
+playwright/.cache/
 
 # Local agent and workflow state
 .atl/
