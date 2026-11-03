@@ -79,6 +79,33 @@ test('detailed pictures contain 40 × 40 palette-key stitches in multiple colour
   }
 });
 
+test('sunset landscape separates light sky, dark snowy mountains, blue lake and foreground pines', () => {
+  const { palette, rows } = MOTIFS.landscape;
+  const luminance = key => {
+    const channels = palette[key].match(/[0-9a-f]{2}/gi).map(hex => parseInt(hex, 16) / 255);
+    return channels.map(c => c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4)
+      .reduce((sum, c, i) => sum + c * [.2126, .7152, .0722][i], 0);
+  };
+  const average = keys => keys.reduce((sum, key) => sum + luminance(key), 0) / keys.length;
+  const sky = Array.from(rows.slice(0, 10).join('')).filter(key => 'abcde'.includes(key));
+  const mountain = Array.from(rows.join('')).filter(key => 'hij'.includes(key));
+  const lake = Array.from(rows.slice(30, 36).join('')).filter(key => 'lm'.includes(key));
+  assert.ok(sky.length > 250 && mountain.length > 120 && lake.length > 100);
+  assert.ok(average(sky) - average(mountain) >= .35, 'sky must be clearly brighter than mountains');
+  assert.ok(average(lake) - average(mountain) >= .12, 'lake must be brighter than mountains');
+  assert.ok(average(sky) - average(lake) >= .12, 'lake must remain darker than sky');
+  assert.ok(Array.from(rows.slice(12, 28)).some((row, offset) =>
+    Array.from(row).some((key, x) => key === 'k' && 'hi'.includes(rows[offset + 13][x]))),
+  'white snow touches a mountain slope');
+  assert.ok(luminance('k') > .75, 'snow is bright white');
+  assert.ok(rows.slice(30, 37).filter(row => row.slice(21, 30).includes('n')).length >= 3,
+    'broken sun reflection continues down the lake below the sun');
+  assert.ok(luminance('n') - average(lake) >= .3, 'sun reflection stands out on water');
+  assert.ok(rows[39].slice(10, 30).includes('p'), 'green shore reaches the bottom');
+  assert.ok([5, 36].every(x => rows.slice(25, 35).some(row => 'op'.includes(row[x]))),
+    'pines frame both edges of the water');
+});
+
 test('each detailed cell is drawn once at its palette colour, centred on the body grid', () => {
   const h = fixture();
   try {

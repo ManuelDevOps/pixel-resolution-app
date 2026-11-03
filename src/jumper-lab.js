@@ -24,31 +24,31 @@ const invader16 = [
 // The landscape is sampled directly onto the same one-stitch-per-cell grid.
 function sunsetLandscape() {
   const palette = {
-    a: '#26356e', b: '#544087', c: '#985497', d: '#dc7495', e: '#f7a66e',
-    f: '#ffe29a', g: '#fff2cb', h: '#6577a4', i: '#3d5182', j: '#293d63',
-    k: '#e8d9dc', l: '#31587b', m: '#477f96', n: '#f8c47d', o: '#172e47',
-    p: '#244d53',
+    a: '#f3a5a2', b: '#f8b7a0', c: '#fbc99a', d: '#ffda9c', e: '#ffe7ab',
+    f: '#ffda62', g: '#fff9da', h: '#49335d', i: '#302b55', j: '#282743',
+    k: '#fff9ed', l: '#3689c6', m: '#60aedb', n: '#fff2a2', o: '#123c32',
+    p: '#36724b',
   };
   const rows = Array.from({ length: 40 }, (_, y) => Array.from({ length: 40 }, (_, x) => {
-    let key = y < 4 ? 'a' : y < 8 ? 'b' : y < 12 ? 'c' : y < 16 ? 'd' : 'e';
-    // A small bright core and a one-stitch rim keep the sun readable.
-    const sun = (x - 25) ** 2 + (y - 13) ** 2;
-    if (sun <= 36) key = sun <= 12 ? 'g' : 'f';
-    // Three overlapping ranges, with narrow snowy ridgelines and diagonal slopes.
-    const far = 18 - Math.max(0, 7 - Math.abs(x - 9)) * .8;
+    let key = y < 5 ? 'a' : y < 10 ? 'b' : y < 15 ? 'c' : y < 19 ? 'd' : 'e';
+    // The low sun disappears behind the snow-capped silhouette.
+    const sun = (x - 25) ** 2 + (y - 15) ** 2;
+    if (sun <= 64) key = sun <= 25 ? 'g' : 'f';
+    const far = 20 - Math.max(0, 7 - Math.abs(x - 9)) * .8;
     if (y >= far && y < 27) key = y < far + 1.5 ? 'k' : 'h';
-    const middle = 21 - Math.max(0, 9 - Math.abs(x - 27)) * .85;
-    if (y >= middle && y < 28) key = y < middle + 1.3 ? 'k' : 'i';
+    const middle = 23 - Math.max(0, 9 - Math.abs(x - 29)) * .85;
+    if (y >= middle && y < 28) key = y < middle + 1.5 ? 'k' : 'i';
     const near = 27 - Math.max(0, 5 - Math.abs(x - 2)) * .8;
-    if (y >= near && y < 30) key = 'j';
+    if (y >= near && y < 29) key = 'j';
     if (y >= 29) {
-      key = (y + x) % 6 === 0 ? 'm' : 'l';
-      if (Math.abs(x - 25) <= Math.max(0, 4 - Math.floor((y - 29) / 3)) && y % 2 === 0) key = 'n';
+      key = y % 4 === 0 ? 'm' : 'l';
+      if (y <= 36 && y % 2 === 0 && Math.abs(x - 25) <= Math.max(1, 5 - Math.floor((y - 30) / 2))) key = 'n';
     }
-    // Thin foreground pines: single-stitch trunks, asymmetric needle tips.
-    for (const [trunk, tip] of [[5, 24], [36, 25]]) {
+    if (y >= 37) key = 'p';
+    // Dark pine silhouettes sit on the shore and frame the light sky and lake.
+    for (const [trunk, tip] of [[5, 19], [36, 21]]) {
       if (x === trunk && y >= tip && y <= 39) key = 'o';
-      if (y >= tip && y <= tip + 10 && Math.abs(x - trunk) <= Math.floor((y - tip) / 3)) key = 'p';
+      if (y >= tip && y <= 36 && Math.abs(x - trunk) <= Math.floor((y - tip) / 3)) key = 'o';
     }
     return key;
   }).join(''));
