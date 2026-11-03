@@ -50,6 +50,20 @@ test('TV Lab shows no detail explanation or simulation notes; image detail stays
   } finally { h.close(); }
 });
 
+test('TV Lab header uses the same hero layout and title size as Explore', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const css = await readFile(new URL('../src/style.css', import.meta.url), 'utf8');
+  const h = lab();
+  try {
+    initTvLab(h.root);
+    assert.match(h.root.innerHTML, /<div class="hero"><div><span class="eyebrow"><span>✳<\/span> TV SIZE LAB<\/span><h1 id="tv-title">/);
+    assert.ok(!h.root.innerHTML.includes('challenge-intro'));
+    // One title size rule serves both pages.
+    assert.match(css, /\.hero h1 \{ font-size:clamp\(32px,4vw,56px\) \}/);
+    assert.doesNotMatch(css, /#explore-title \{|\.challenge-intro/);
+  } finally { h.close(); }
+});
+
 test('a rejected or empty drop does not cancel the pending included image', () => {
   for (const files of [[{ type: 'image/gif', size: 10 }], []]) {
     const h = lab();

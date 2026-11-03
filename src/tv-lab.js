@@ -146,7 +146,7 @@ export function initTvLab(root) {
   const stretch = { 32: 0, 45: 0, 70: 0 };
 
   root.innerHTML = `
-    <div class="challenge-intro"><span class="eyebrow"><span>✳</span> TV SIZE LAB</span><h1 id="tv-title">One image. <em>Three TV sizes.</em></h1><p>Explore how image resolution can look different as the screen gets bigger.</p></div>
+    <div class="hero"><div><span class="eyebrow"><span>✳</span> TV SIZE LAB</span><h1 id="tv-title">One image. <em>Three TV sizes.</em></h1><p>Explore how image resolution can look different as the screen gets bigger.</p></div></div>
     <div class="workspace tv-workspace">
       <div class="section-heading"><div><span class="step-label">01 / YOUR IMAGE</span><h2>Choose an image <span>✳</span></h2><p>Upload once to show the same picture on all three TVs.</p></div><div id="tv-nav" class="mode-nav-row"></div></div>
       <div id="tv-drop-zone" class="upload-zone"><label for="tv-photo-input">Drag and drop the image here</label><span>or</span><input id="tv-photo-input" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Choose an image for TV Lab"><p>JPEG, PNG or WebP · up to 100 MB · stays in your browser · original file unchanged</p><p id="tv-photo-error" class="upload-error" role="alert" aria-live="polite"></p></div>
