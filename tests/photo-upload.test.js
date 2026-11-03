@@ -23,7 +23,7 @@ test('working copy caps longest side without upscaling and preserves portrait, l
   assert.deepEqual(workingDimensions(0, 1), null);
 });
 
-test('Explore chooser and drop keep samples and challenges intact, reject safely, and ignore stale decoding', async () => {
+test('Explore chooser and drop keep samples intact, reject safely, and ignore stale decoding', async () => {
   const nodes = new Map();
   const pending = [];
   const sampleImages = [];
@@ -75,6 +75,8 @@ test('Explore chooser and drop keep samples and challenges intact, reject safely
   };
   try {
     await import(`../src/app.js?photo-test=${Date.now()}`);
+    // Explore no longer shows the size estimate or the decorative LOOK CLOSER stamp.
+    assert.doesNotMatch(node('explore').innerHTML, /Estimated uncompressed size|id="storage"|hero-stamp|LOOK<br>CLOSER/);
     assert.equal(defaultImages.length, 1);
     // A rejected or empty drop while the included image decodes must not cancel it.
     node('drop-zone').fire('drop', { dataTransfer: { files: [{ type: 'image/gif', size: 10 }] } });
@@ -194,14 +196,11 @@ test('Explore chooser and drop keep samples and challenges intact, reject safely
     node('image-select').fire('change');
     pending[6].fire('load');
     assert.equal(node('source-size').textContent, 'Sample illustration: 320 × 240 px');
-    node('challenge-tab').fire('click');
-    assert.equal(node('challenge').hidden, false);
     node('theme-toggle').fire('click');
     assert.equal(node('html').dataset.theme, undefined);
     assert.equal(node('theme-toggle').textContent, 'Cyber theme');
     assert.equal(session.get('pixel-lab-theme'), 'standard');
-    assert.equal(node('challenge').hidden, false);
-    assert.equal(node('explore').hidden, true);
+    assert.equal(node('explore').hidden, false);
     assert.equal(nextUrl, 7); // browser-local object URLs, no upload request
     assert.deepEqual(revoked, ['blob:1', 'blob:2', 'blob:3', 'blob:4', 'blob:5', 'blob:6', 'blob:7']);
   } finally {

@@ -4,9 +4,6 @@ export const dimensions = (width, sourceWidth, sourceHeight) => ({
   height: Math.max(1, Math.round(width * sourceHeight / sourceWidth)),
 });
 export const imageBytes = (width, height, bits) => Math.ceil(pixelCount(width, height) * bits / 8);
-export const guessPoints = (correct, hints) => correct ? Math.max(1, 3 - hints) : 0;
-export const lowestUseful = (selected, minimum) => selected === minimum;
-export const bestFit = (scenario, width) => ({ icon: 64, poster: 2048 })[scenario] === width;
 
 export function validatePhoto(file) {
   if (!file || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return 'Choose a JPEG, PNG or WebP image.';

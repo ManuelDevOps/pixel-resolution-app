@@ -171,8 +171,14 @@ test('TV Lab starts at equal image size, stretches each TV independently, and ke
   const { root, node, restore } = createHarness();
   try {
     initTvLab(root);
-    assert.match(root.innerHTML, /purple resize dot/);
+    // The removed instruction note is replaced by each larger TV's labelled stretch slider.
+    assert.doesNotMatch(root.innerHTML, /purple resize dot/);
+    for (const size of [45, 70]) assert.match(root.innerHTML, new RegExp(`<label class="tv-stretch-label">Stretch image on ${size}-inch TV`));
     assert.doesNotMatch(root.innerHTML, /Drag the image corner/);
+    // Each TV shows its screen resolution, width × height.
+    for (const [size, resolution] of [[32, '1280 × 720'], [45, '1920 × 1080'], [70, '3840 × 2160']]) {
+      assert.match(root.innerHTML, new RegExp(`<figcaption>${size}″ <span>TV</span><small class="tv-resolution">${resolution}</small></figcaption>`));
+    }
     assert.match(root.innerHTML, /tv-stretch-spacer/);
     assert.match(root.innerHTML, /stretched to fill the 70/);
     assert.match(tvCss, /tv-stretch-spacer[^}]*height:\s*56px/s);

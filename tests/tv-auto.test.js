@@ -40,6 +40,16 @@ function lab() {
 const screen = (node, size = 70) => node(`[data-tv-size="${size}"]`);
 const shown = canvas => canvas.draws.at(-1)?.[0];
 
+test('TV Lab shows no detail explanation or simulation notes; image detail stays for screen readers', () => {
+  const h = lab();
+  try {
+    initTvLab(h.root);
+    const html = h.root.innerHTML;
+    for (const text of ['IMAGE DETAIL', 'A decoded image is 4K', 'The images start at the same size', 'This is a simplified simulation']) assert.ok(!html.includes(text), text);
+    assert.match(html, /<p id="tv-image-info" class="sr-only" aria-live="polite"><\/p>/);
+  } finally { h.close(); }
+});
+
 test('a rejected or empty drop does not cancel the pending included image', () => {
   for (const files of [[{ type: 'image/gif', size: 10 }], []]) {
     const h = lab();

@@ -98,13 +98,12 @@ test('late included image does not replace a selected illustration or an uploade
   });
 });
 
-test('sample resolution survives full-resolution photo defaults, replacement and mode changes until a shared step is chosen', async () => {
+test('sample resolution survives full-resolution photo defaults and replacement until a shared step is chosen', async () => {
   await withExplore(({ node, upload }) => {
     assert.equal(node('preview-size').textContent, '32 × 24 px');
     upload(800, 600);
     assert.equal(node('preview-size').textContent, '800 × 600 px');
     assert.equal(node('resolution').value, node('resolution').max);
-    node('challenge-tab').fire('click'); node('explore-tab').fire('click');
     upload(1, 1600);
     assert.equal(node('preview-size').textContent, '1 × 1600 px');
     node('image-select').value = '1'; node('image-select').fire('change');

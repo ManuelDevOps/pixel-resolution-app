@@ -26,7 +26,7 @@ function fixture(saved = null, blocked = false) {
 
 test('visible button exposes destination and theme without resetting document content', () => {
   const f = fixture();
-  f.root.content = { image: 'photo', resolution: 32, challenge: 'round 2', tv: { quality: 'auto', stretch: 75, zoom: 2 } };
+  f.root.content = { image: 'photo', resolution: 32, tv: { quality: 'auto', stretch: 75, zoom: 2 } };
   const content = f.root.content;
   initTheme(f.root, f.storage);
   assert.equal(f.root.dataset.theme, undefined);
@@ -40,7 +40,7 @@ test('visible button exposes destination and theme without resetting document co
   assert.equal(f.button.attributes['aria-pressed'], undefined);
   assert.equal(f.saved, 'cyber');
   assert.equal(f.root.content, content);
-  assert.deepEqual(f.root.content, { image: 'photo', resolution: 32, challenge: 'round 2', tv: { quality: 'auto', stretch: 75, zoom: 2 } });
+  assert.deepEqual(f.root.content, { image: 'photo', resolution: 32, tv: { quality: 'auto', stretch: 75, zoom: 2 } });
   f.button.click();
   assert.equal(f.root.dataset.theme, undefined);
   assert.equal(f.button.textContent, 'Cyber theme');

@@ -2,8 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
+test('navigation offers only Explore then TV Lab and no Challenge page', () => {
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const buttons = [...html.matchAll(/<nav class="mode-switch"[^>]*>([\s\S]*?)<\/nav>/g)]
+    .flatMap(([, content]) => [...content.matchAll(/<button id="([^"]+)"[^>]*>(.*?)<\/button>/g)].map(([, id]) => id));
+  assert.deepEqual(buttons, ['explore-tab', 'tv-tab']);
+  assert.doesNotMatch(html, /<section id="challenge"\b/);
+});
+
 // A small DOM fixture exercises the public buttons and their real parent relationships.
-test('mode navigation stays inside each workspace through game rerenders and lazy TV startup', async () => {
+test('mode navigation stays inside each workspace through Explore and lazy TV startup', async () => {
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const elements = new Map();
   const pendingImages = [];
@@ -24,18 +32,14 @@ test('mode navigation stays inside each workspace through game rerenders and laz
           child.parentElement = this;
         },
         querySelector(selector) { return element(selector === 'option[value="photo"]' ? 'photo-option' : selector === 'option[value="default"]' ? 'default-option' : selector.startsWith('#') ? selector.slice(1) : selector); },
-        querySelectorAll(selector) { return this.id === 'challenge' && selector === '[data-game]' ? [element('guess-game')] : []; },
+        querySelectorAll() { return []; },
         getContext() { return { drawImage() {}, clearRect() {}, fillRect() {}, save() {}, restore() {}, scale() {}, setTransform() {}, beginPath() {}, arc() {}, fill() {}, quadraticCurveTo() {}, strokeRect() {}, fillText() {}, moveTo() {}, lineTo() {}, stroke() {} }; },
         getBoundingClientRect() { return { width: 700 }; },
       };
       Object.defineProperty(e, 'innerHTML', {
         get() { return this.markup || ''; },
-        set(markup) {
-          this.markup = markup;
-          if (this === element('challenge') && element('mode-switch').parentElement?.id === 'challenge-nav') element('mode-switch').parentElement = null;
-        },
+        set(markup) { this.markup = markup; },
       });
-      if (id === 'guess-game') e.dataset.game = 'guess';
       if (id.startsWith('[data-tv-size=')) e.parentElement = { getBoundingClientRect() { return { width: 700 }; } };
       elements.set(id, e);
     }
@@ -43,7 +47,7 @@ test('mode navigation stays inside each workspace through game rerenders and laz
   };
   const nav = element('mode-switch');
   nav.contains = child => nav.buttons.includes(child);
-  nav.buttons = [...html.matchAll(/<button id="(explore-tab|tv-tab|challenge-tab)"[^>]*>(.*?)<\/button>/g)]
+  nav.buttons = [...html.matchAll(/<button id="(explore-tab|tv-tab)"[^>]*>(.*?)<\/button>/g)]
     .map(([, id, label]) => { const button = element(id); button['aria-pressed'] = id === 'explore-tab' ? 'true' : 'false'; button.textContent = label.replace(/<span aria-hidden="true">.*?<\/span>/g, '').replace(/<[^>]*>/g, '').trim(); return button; });
   nav.parentElement = element('header-inner');
   const previous = { document: globalThis.document, window: globalThis.window, Image: globalThis.Image, URL: globalThis.URL };
@@ -60,10 +64,10 @@ test('mode navigation stays inside each workspace through game rerenders and laz
   };
   const check = (parent, selected) => {
     assert.equal(nav.parentElement, element(parent), `nav in ${parent}`);
-    assert.deepEqual(nav.buttons.map(button => button.textContent.trim()), ['Explore', 'TV Lab', 'Challenge']);
+    assert.deepEqual(nav.buttons.map(button => button.textContent.trim()), ['Explore', 'TV Lab']);
     assert.equal(nav.buttons.filter(button => button['aria-pressed'] === 'true').length, 1);
     assert.equal(element(selected)['aria-pressed'], 'true');
-    assert.equal(new Set(nav.buttons).size, 3);
+    assert.equal(new Set(nav.buttons).size, 2);
   };
   try {
     assert.equal((html.match(/id="explore-tab"/g) || []).length, 1);
@@ -74,11 +78,8 @@ test('mode navigation stays inside each workspace through game rerenders and laz
     element('resolution').value = '2'; element('resolution').fire('input');
     element('tv-tab').focus(); element('tv-tab').click(); check('tv-nav', 'tv-tab');
     assert.equal(document.activeElement, element('tv-tab'), 'keyboard activation retains focus after lazy TV navigation move');
-    element('challenge-tab').focus(); element('challenge-tab').click(); check('challenge-nav', 'challenge-tab');
-    assert.equal(document.activeElement, element('challenge-tab'), 'focus follows the same navigation control');
-    element('guess-game').click(); check('challenge-nav', 'challenge-tab');
-    element('reveal').focus(); element('reveal').click(); check('challenge-nav', 'challenge-tab');
-    assert.notEqual(document.activeElement, element('challenge-tab'), 'unrelated game rerenders must not focus navigation');
+    element('explore-tab').focus(); element('explore-tab').click(); check('explore-nav', 'explore-tab');
+    assert.equal(document.activeElement, element('explore-tab'), 'keyboard activation retains focus moving back to Explore');
     element('tv-tab').click(); check('tv-nav', 'tv-tab');
     element('tv-look-closer').click();
     element('[data-tv-stretch="70"]').value = '75'; element('[data-tv-stretch="70"]').fire('input');
@@ -86,10 +87,8 @@ test('mode navigation stays inside each workspace through game rerenders and laz
     element('image-select').focus();
     assert.equal(element('image-select').value, '1');
     assert.equal(element('resolution').value, '2');
-    element('challenge-tab').click(); check('challenge-nav', 'challenge-tab');
-    assert.equal(document.activeElement, element('image-select'), 'programmatic mode changes do not steal focus from other controls');
-    assert.match(element('challenge').innerHTML, /HINTS 1 \/ 2/);
     element('tv-tab').click(); check('tv-nav', 'tv-tab');
+    assert.equal(document.activeElement, element('image-select'), 'programmatic mode changes do not steal focus from other controls');
     assert.equal(element('tv-closeups').hidden, false);
     assert.equal(element('[data-tv-stretch="70"]').value, '75');
   } finally { Object.assign(globalThis, previous); }
