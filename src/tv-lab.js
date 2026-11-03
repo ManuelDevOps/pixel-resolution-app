@@ -42,6 +42,21 @@ export const TV_SIZES = [32, 45, 70];
 // Screen resolution shown under each TV: HD 720p, Full HD and 4K UHD.
 const TV_PANELS = { 32: TV_STANDARDS.hd, 45: TV_STANDARDS.fhd, 70: TV_STANDARDS.uhd };
 
+// Visible 16:9 screen area for a diagonal in inches, in whole centimetres.
+export function screenSizeCm(diagonal) {
+  const inchToCm = 2.54 * diagonal / Math.hypot(16, 9);
+  return { width: Math.round(16 * inchToCm), height: Math.round(9 * inchToCm) };
+}
+const resolutionLabel = diagonal => {
+  const { width, height } = TV_PANELS[diagonal];
+  // Non-breaking spaces keep each group together, so a narrow caption only wraps before the bracket.
+  return `${width}\u00a0×\u00a0${height}\u00a0px (${(width * height).toLocaleString('en-GB')}\u00a0pixels)`;
+};
+const cmLabel = diagonal => {
+  const { width, height } = screenSizeCm(diagonal);
+  return `${width} × ${height} cm`;
+};
+
 export function tvBlurPixels(diagonal, quality, width, height, stretch = 1) {
   const hdSized = Math.max(width, height) <= 1280 && Math.min(width, height) <= 720;
   if (quality !== 'hd' && !hdSized) return 0;
@@ -62,14 +77,6 @@ export function hdPhotoDimensions(width, height) {
   return { width: Math.max(1, Math.round(width * scale)), height: Math.max(1, Math.round(height * scale)) };
 }
 
-export function zoomRect(width, height, diagonal) {
-  // The zooms represent the same physical area, centred on the same detail.
-  const fraction = 0.08 * 32 / diagonal;
-  const cropWidth = width * fraction;
-  const cropHeight = height * fraction;
-  return { x: (width - cropWidth) / 2, y: (height - cropHeight) / 2, width: cropWidth, height: cropHeight };
-}
-
 function drawFrame(ctx, width, height) {
   ctx.save();
   ctx.scale(width / 960, height / 540);
@@ -83,7 +90,6 @@ function drawFrame(ctx, width, height) {
   ctx.fillStyle = '#fff7e8'; ctx.fillRect(402, 245, 156, 72);
   ctx.strokeStyle = '#4a4d63'; ctx.lineWidth = 4; ctx.strokeRect(402, 245, 156, 72);
   ctx.fillStyle = '#34394e'; ctx.font = 'bold 26px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('PIXEL PARK', 480, 275);
-  ctx.font = '14px sans-serif'; ctx.fillText('LOOK CLOSER', 480, 297);
   ctx.strokeStyle = '#34394e'; ctx.lineWidth = 0.8;
   for (let i = 0; i < 28; i++) { ctx.beginPath(); ctx.moveTo(407 + i * 5.2, 304); ctx.lineTo(407 + i * 5.2, 311); ctx.stroke(); }
   ctx.restore();
@@ -117,21 +123,20 @@ function virtualFrame(image) {
   return { width, height: image.height, x: (width - image.width) / 2, y: 0 };
 }
 
-function drawTvImage(canvas, image, diagonal, zoomed, stretch = 1) {
+function drawTvImage(canvas, image, diagonal, stretch = 1) {
   const frame = virtualFrame(image);
-  const rect = zoomed ? zoomRect(frame.width, frame.height, diagonal) : { x: 0, y: 0, width: frame.width, height: frame.height };
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#28293a';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.save();
-  ctx.imageSmoothingEnabled = !zoomed;
-  const fraction = zoomed ? 1 : (32 + (diagonal - 32) * stretch) / diagonal;
-  const scaleX = canvas.width * fraction / rect.width;
-  const scaleY = canvas.height * fraction / rect.height;
+  ctx.imageSmoothingEnabled = true;
+  const fraction = (32 + (diagonal - 32) * stretch) / diagonal;
+  const scaleX = canvas.width * fraction / frame.width;
+  const scaleY = canvas.height * fraction / frame.height;
   const offsetX = canvas.width * (1 - fraction) / 2;
   const offsetY = canvas.height * (1 - fraction) / 2;
-  ctx.setTransform(scaleX, 0, 0, scaleY, offsetX - rect.x * scaleX, offsetY - rect.y * scaleY);
+  ctx.setTransform(scaleX, 0, 0, scaleY, offsetX, offsetY);
   ctx.drawImage(image, frame.x, frame.y);
   ctx.restore();
 }
@@ -151,10 +156,8 @@ export function initTvLab(root) {
       <div class="section-heading"><div><span class="step-label">01 / YOUR IMAGE</span><h2>Choose an image <span>✳</span></h2><p>Upload once to show the same picture on all three TVs.</p></div><div id="tv-nav" class="mode-nav-row"></div></div>
       <div id="tv-drop-zone" class="upload-zone"><label for="tv-photo-input">Drag and drop the image here</label><span>or</span><input id="tv-photo-input" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Choose an image for TV Lab"><p>JPEG, PNG or WebP · up to 100 MB · stays in your browser · original file unchanged</p><p id="tv-photo-error" class="upload-error" role="alert" aria-live="polite"></p></div>
       <p id="tv-image-info" class="sr-only" aria-live="polite"></p>
-      <div class="tv-size-screens">${TV_SIZES.map(diagonal => `<figure class="tv-size-screen" style="--diagonal:${diagonal};--screen-width:${diagonal / 70 * 100}%"><div class="tv-photo-frame"><div class="tv-size-bezel"><canvas width="640" height="360" data-tv-size="${diagonal}" aria-label="Simulated ${diagonal}-inch television"></canvas>${diagonal === 32 ? '' : `<div class="tv-stretch-handle" data-tv-handle="${diagonal}" aria-hidden="true"></div>`}</div></div><figcaption>${diagonal}″ <span>TV</span><small class="tv-resolution">${TV_PANELS[diagonal].width} × ${TV_PANELS[diagonal].height}</small></figcaption>${diagonal === 32 ? '<div class="tv-stretch-spacer" aria-hidden="true"></div>' : `<label class="tv-stretch-label">Stretch image on ${diagonal}-inch TV<input type="range" min="0" max="100" value="0" data-tv-stretch="${diagonal}" aria-label="Stretch image on ${diagonal}-inch TV"></label>`}</figure>`).join('')}</div>
-      <div class="tv-tools"><button id="tv-look-closer" class="hint-button" aria-pressed="false">⌕ Look closer</button><p>The TVs are shown in proportion. They are simulations, not actual physical sizes.</p></div>
-      <div id="tv-closeups" class="tv-closeups" hidden>${TV_SIZES.map(diagonal => `<figure><canvas width="640" height="360" data-tv-zoom="${diagonal}" aria-label="Magnified centre of ${diagonal}-inch television"></canvas><figcaption>${diagonal}″ TV</figcaption></figure>`).join('')}</div>
-      <p id="tv-zoom-note" class="tv-note" hidden>The close-ups show the same physical area centred on the same detail. They match at the starting size and reveal fewer source pixels as you stretch each image. Close-ups omit the added blur.</p>
+      <div class="tv-size-screens">${TV_SIZES.map(diagonal => `<figure class="tv-size-screen" style="--diagonal:${diagonal};--screen-width:${diagonal / 70 * 100}%"><div class="tv-photo-frame"><div class="tv-size-bezel"><canvas width="640" height="360" data-tv-size="${diagonal}" aria-label="Simulated ${diagonal}-inch television"></canvas>${diagonal === 32 ? '' : `<div class="tv-stretch-handle" data-tv-handle="${diagonal}" aria-hidden="true"></div>`}</div></div><figcaption><strong class="tv-inches">${diagonal}″</strong> <span>TV</span> <span class="tv-cm">${cmLabel(diagonal)}</span><small class="tv-resolution">${resolutionLabel(diagonal)}</small></figcaption>${diagonal === 32 ? '<div class="tv-stretch-spacer" aria-hidden="true"></div>' : `<label class="tv-stretch-label">Stretch image on ${diagonal}-inch TV<input type="range" min="0" max="100" value="0" data-tv-stretch="${diagonal}" aria-label="Stretch image on ${diagonal}-inch TV"></label>`}</figure>`).join('')}</div>
+      <div class="tv-tools"><p>The TVs are shown in proportion. They are simulations, not actual physical sizes.</p></div>
       <div class="tv-fact"><span>✳</span><div><strong>Same image, stretched wider.</strong><p>Stretching does not remove pixels or add detail. Existing pixels cover more space and may be easier to notice at the same viewing distance.</p></div></div>
     </div>
     <div class="workspace tv-quiz"><span class="step-label">02 / TRY IT</span><h2>Put it to the test <span>✳</span></h2><p>An HD image fills a 32″ TV, then is stretched to fill the 70″ TV at the same distance. What changes?</p><div class="tv-answers"><button data-tv-answer="loses-pixels">Stretching removes pixels from the image.</button><button data-tv-answer="same-pixels">The same pixels cover more space when stretched.</button><button data-tv-answer="gains-detail">Stretching automatically adds detail to the image.</button></div><div id="tv-feedback" class="feedback" role="status" aria-live="polite" hidden></div></div>`;
@@ -182,7 +185,7 @@ export function initTvLab(root) {
           screen.height = height;
         }
       }
-      drawTvImage(screen, image, diagonal, false, amount);
+      drawTvImage(screen, image, diagonal, amount);
       const blur = tvBlurPixels(diagonal, quality, original.width, original.height, amount);
       screen.style.filter = blur ? `blur(${blur}px)` : 'none';
       if (diagonal !== 32) {
@@ -191,7 +194,6 @@ export function initTvLab(root) {
         get(`[data-tv-handle="${diagonal}"]`).style.left = `clamp(11px, ${(1 + fraction) * 50}%, calc(100% - 11px))`;
         get(`[data-tv-handle="${diagonal}"]`).style.top = `clamp(11px, ${(1 + fraction) * 50}%, calc(100% - 11px))`;
       }
-      if (!get('#tv-closeups').hidden) drawTvImage(get(`[data-tv-zoom="${diagonal}"]`), image, 32 + (diagonal - 32) * amount, true);
     }
     get('#tv-image-info').textContent = `${imageDescription}. ${quality === 'hd' ? `Automatic HD simulation: ${image.width.toLocaleString('en-GB')} × ${image.height.toLocaleString('en-GB')} px of image detail (maximum 1280 × 720). Stretching adds illustrative blur; smaller images are not enhanced.` : 'Automatic 4K or higher: full working-image detail, no artificial blur when stretched.'}`;
   };
@@ -292,14 +294,6 @@ export function initTvLab(root) {
     const observer = new MutationObserver(() => { if (!root.hidden) paint(); });
     observer.observe(root, { attributes: true, attributeFilter: ['hidden'] });
   }
-  get('#tv-look-closer').addEventListener('click', event => {
-    const closeups = get('#tv-closeups');
-    closeups.hidden = !closeups.hidden;
-    get('#tv-zoom-note').hidden = closeups.hidden;
-    event.currentTarget.setAttribute('aria-pressed', String(!closeups.hidden));
-    event.currentTarget.textContent = closeups.hidden ? '⌕ Look closer' : '⌕ Hide close-ups';
-    paint();
-  });
   root.querySelectorAll('[data-tv-answer]').forEach(button => button.addEventListener('click', () => {
     const result = answerSizeQuestion(button.dataset.tvAnswer);
     const feedback = get('#tv-feedback');

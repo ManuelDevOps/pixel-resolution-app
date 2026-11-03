@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { TV_SIZES, tvWorkingDimensions, hdPhotoDimensions, zoomRect, answerSizeQuestion, tvBlurPixels } from '../src/tv-lab.js';
+import { TV_SIZES, tvWorkingDimensions, hdPhotoDimensions, answerSizeQuestion, tvBlurPixels } from '../src/tv-lab.js';
 
 test('TV sizes represent 32, 45 and 70 inches in proportion', () => {
   assert.deepEqual(TV_SIZES, [32, 45, 70]);
@@ -50,14 +50,4 @@ test('the TV size question explains that existing pixels cover more space', () =
   assert.match(answerSizeQuestion('same-pixels').explanation, /stretched/i);
   assert.equal(answerSizeQuestion('loses-pixels').correct, false);
   assert.equal(answerSizeQuestion('gains-detail').correct, false);
-});
-
-test('equal physical-area magnification exposes fewer source pixels on larger TVs', () => {
-  const small = zoomRect(1280, 720, 32);
-  const medium = zoomRect(1280, 720, 45);
-  const large = zoomRect(1280, 720, 70);
-  assert.ok(small.width > medium.width && medium.width > large.width);
-  assert.ok(Math.abs(small.width / large.width - 70 / 32) < 1e-10);
-  assert.equal(small.x + small.width / 2, large.x + large.width / 2);
-  assert.equal(small.y + small.height / 2, large.y + large.height / 2);
 });

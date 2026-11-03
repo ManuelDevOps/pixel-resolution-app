@@ -2,6 +2,34 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
+const css = readFileSync(new URL('../src/style.css', import.meta.url), 'utf8');
+const rule = (source, selector) => source.match(new RegExp(`${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`))?.[1] || '';
+
+test('all workspace navigation shares a centred top row and mobile first row', () => {
+  const heading = rule(css, ':is(#explore, #tv-lab, #jumper-lab) .section-heading');
+  assert.match(heading, /display:\s*grid\s*;/);
+  assert.match(heading, /grid-template-columns:\s*minmax\(0,1fr\) auto minmax\(0,1fr\)\s*;/);
+  assert.match(rule(css, ':is(#explore, #tv-lab, #jumper-lab) .section-heading > div:first-child'), /grid-column:\s*1\s*;/);
+  const nav = rule(css, ':is(#explore, #tv-lab, #jumper-lab) .mode-nav-row');
+  assert.match(nav, /grid-column:\s*2\s*;/);
+  assert.match(nav, /align-self:\s*start\s*;/);
+  assert.match(rule(css, '#explore .select-label'), /grid-column:\s*3\s*;/);
+  assert.match(rule(css, '#explore .select-label'), /justify-self:\s*end\s*(?:;|$)/);
+  assert.doesNotMatch(css, /(?:#explore|:is\(#tv-lab, #jumper-lab\)) \.section-heading\s*\{[^}]*grid-template-columns:\s*(?:max-content|minmax\(0,1fr\) auto)/);
+  const tablet = css.slice(css.indexOf('@media (max-width:950px)'), css.indexOf('@media (max-width:750px)'));
+  assert.match(rule(tablet, '#explore .select-label'), /grid-column:\s*1 \/ -1\s*;/);
+  assert.doesNotMatch(rule(tablet, '#explore .section-heading'), /grid-template-columns/);
+  const mobileStart = css.indexOf('@media (max-width:750px)');
+  const mobile = css.slice(mobileStart, css.indexOf('\n.select-label {', mobileStart));
+  assert.match(rule(mobile, ':is(#explore, #tv-lab, #jumper-lab) .section-heading'), /grid-template-columns:\s*minmax\(0,1fr\)/);
+  assert.match(rule(mobile, ':is(#explore, #tv-lab, #jumper-lab) .mode-nav-row'), /order:\s*-1\s*;/);
+  assert.match(rule(mobile, ':is(#explore, #tv-lab, #jumper-lab) .mode-nav-row'), /grid-column:\s*1 \/ -1\s*;/);
+  assert.match(rule(css, '.workspace'), /padding:\s*30px\s*(?:;|$)/);
+  const small = css.slice(css.indexOf('@media(max-width:650px)'), css.indexOf('#theme-toggle {'));
+  assert.match(rule(small, '.workspace'), /padding:\s*18px\s*(?:;|$)/);
+  assert.doesNotMatch(css, /\.tv-workspace\s*\{[^}]*padding\s*:/);
+});
+
 test('navigation offers Explore, TV Lab, Jumper Lab in order and no Challenge page', () => {
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const buttons = [...html.matchAll(/<nav class="mode-switch"[^>]*>([\s\S]*?)<\/nav>/g)]
@@ -19,7 +47,7 @@ test('mode navigation stays inside each workspace through Explore and lazy lab s
     if (!elements.has(id)) {
       const events = {};
       const e = {
-        id, hidden: id === 'tv-closeups' || id === 'tv-zoom-note' || id === 'jumper-lab', value: id === 'resolution' ? '5' : id === 'jumper-motif' ? 'heart' : id === 'jumper-x' || id === 'jumper-y' ? '100' : '0', checked: false,
+        id, hidden: id === 'jumper-lab', value: id === 'resolution' ? '5' : id === 'jumper-motif' ? 'heart' : id === 'jumper-x' || id === 'jumper-y' ? '100' : '0', checked: false,
         textContent: '', dataset: {}, style: {}, width: 640, height: 480, files: [],
         classList: { toggle() {}, add() {}, remove() {} },
         setAttribute(key, value) { this[key] = value; },
@@ -81,7 +109,6 @@ test('mode navigation stays inside each workspace through Explore and lazy lab s
     element('explore-tab').focus(); element('explore-tab').click(); check('explore-nav', 'explore-tab');
     assert.equal(document.activeElement, element('explore-tab'), 'keyboard activation retains focus moving back to Explore');
     element('tv-tab').click(); check('tv-nav', 'tv-tab');
-    element('tv-look-closer').click();
     element('[data-tv-stretch="70"]').value = '75'; element('[data-tv-stretch="70"]').fire('input');
     element('explore-tab').click(); check('explore-nav', 'explore-tab');
     element('image-select').focus();
@@ -89,7 +116,6 @@ test('mode navigation stays inside each workspace through Explore and lazy lab s
     assert.equal(element('resolution').value, '2');
     element('tv-tab').click(); check('tv-nav', 'tv-tab');
     assert.equal(document.activeElement, element('image-select'), 'programmatic mode changes do not steal focus from other controls');
-    assert.equal(element('tv-closeups').hidden, false);
     assert.equal(element('[data-tv-stretch="70"]').value, '75');
     element('jumper-tab').focus(); element('jumper-tab').click(); check('jumper-nav', 'jumper-tab');
     assert.equal(document.activeElement, element('jumper-tab'));

@@ -19,7 +19,7 @@ function lab() {
     if (!nodes.has(selector)) {
       const listeners = {};
       nodes.set(selector, /^\[data-tv-(size|zoom)=/.test(selector) ? canvas(selector.startsWith('[data-tv-size=')) : {
-        hidden: selector === '#tv-closeups' || selector === '#tv-zoom-note', textContent: '', value: '', attributes: {}, style: {}, files: [],
+        hidden: false, textContent: '', value: '', attributes: {}, style: {}, files: [],
         classList: { add() {}, remove() {} }, setPointerCapture() {},
         addEventListener(type, fn) { listeners[type] = fn; }, setAttribute(key, value) { this.attributes[key] = value; },
         fire(type, extra = {}) { listeners[type]?.({ currentTarget: this, target: this, preventDefault() {}, ...extra }); },
@@ -94,9 +94,8 @@ test('included landscape starts as exact HD on every TV and only blurs when stre
     h.node('[data-tv-stretch="70"]').value = '50'; h.node('[data-tv-stretch="70"]').fire('input');
     assert.notEqual(screen(h.node, 70).style.filter, 'none');
     assert.equal(screen(h.node, 45).style.filter, 'none');
-    h.node('#tv-look-closer').fire('click');
-    assert.equal(shown(h.node('[data-tv-zoom="70"]')).draws.at(-1)[0], h.defaults[0]);
-    assert.ok(before.every(n => n > 0));
+    assert.equal(shown(screen(h.node)).draws.at(-1)[0], h.defaults[0]);
+    assert.ok([32, 45, 70].every((size, index) => screen(h.node, size).draws.length > before[index]));
   } finally { h.close(); }
 });
 
@@ -144,7 +143,7 @@ test('automatic UHD boundary uses decoded dimensions before capping, including p
   } finally { h.close(); }
 });
 
-test('auto HD survives prior 4K and rejection; initial example and look closer remain coherent', () => {
+test('auto HD survives prior 4K and rejection; initial example remains coherent', () => {
   const h = lab();
   try {
     initTvLab(h.root);
@@ -154,8 +153,7 @@ test('auto HD survives prior 4K and rejection; initial example and look closer r
     assert.deepEqual([shown(screen(h.node)).width, shown(screen(h.node)).height], [1280, 720]);
     h.node('[data-tv-stretch="70"]').value = '100'; h.node('[data-tv-stretch="70"]').fire('input');
     assert.notEqual(screen(h.node).style.filter, 'none');
-    h.node('#tv-look-closer').fire('click');
-    assert.equal(shown(h.node('[data-tv-zoom="70"]')), shown(screen(h.node)));
+    assert.equal(shown(screen(h.node)).width, 1280);
     const before = h.node('#tv-image-info').textContent;
     h.node('#tv-drop-zone').fire('drop', { dataTransfer: { files: [{ type: 'image/gif', size: 1 }] } });
     assert.equal(h.node('#tv-photo-error').textContent, 'Choose a JPEG, PNG or WebP image.');
