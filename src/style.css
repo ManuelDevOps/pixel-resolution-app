@@ -453,22 +453,6 @@ input[type=range] {
 
 
 
-footer {
-  max-width:1760px;
-  margin:28px auto;
-  padding:0 26px 32px;
-  display:flex;
-  justify-content:space-between;
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:.6px;
-  color:#aaa5b5
-}
-
-footer span span {
-  color:#ad9de8
-}
-
 .hint-button {
   border:0;
   background:#eee9fc;
@@ -552,11 +536,6 @@ footer span span {
 .range-ticks {
   margin-left:69px;
   margin-right:69px
-}
-
-footer {
-  padding:0 18px 24px;
-  gap:12px
 }
 
 }
@@ -792,7 +771,7 @@ html:not([data-theme="cyber"]) .workspace {
   border-width: 2px;
   border-radius: 22px;
 }
-html:not([data-theme="cyber"]) :is(.brand-accent, h1 em, .eyebrow, .live-dot, .card-bottom strong, .stats .total strong, .tv-fact > span, .resolution-head h3 span, footer span span) { color: #5a189a; }
+html:not([data-theme="cyber"]) :is(.brand-accent, h1 em, .eyebrow, .live-dot, .card-bottom strong, .stats .total strong, .tv-fact > span, .resolution-head h3 span) { color: #5a189a; }
 html:not([data-theme="cyber"]) .brand-icon { background: #5a189a; color: #fffdf9; border-radius: 14px; }
 html:not([data-theme="cyber"]) :is(.mode-switch) {
   background: #f1eaff;
@@ -837,7 +816,7 @@ html:not([data-theme="cyber"]) :is(.notice, .feedback) { background: #fff1c9; co
 html:not([data-theme="cyber"]) .feedback.correct { background: #d9f7e9; border-color: #339a6d; }
 html:not([data-theme="cyber"]) .feedback.incorrect { background: #ffe4eb; border-color: #b64a70; }
 html:not([data-theme="cyber"]) :is(.notice-icon, .upload-zone .upload-error) { color: #9b3050; }
-html:not([data-theme="cyber"]) :is(.hero p, .section-heading p, .upload-zone p, .card-bottom, .grid-option, .notice p, .tv-stretch-label, .tv-tools p, .tv-fact p, .tv-signal p, .tv-quiz > p, .image-card .card-tag, .jumper-controls label, footer) { color: #4b315c; }
+html:not([data-theme="cyber"]) :is(.hero p, .section-heading p, .upload-zone p, .card-bottom, .grid-option, .notice p, .tv-stretch-label, .tv-tools p, .tv-fact p, .tv-signal p, .tv-quiz > p, .image-card .card-tag, .jumper-controls label) { color: #4b315c; }
 html:not([data-theme="cyber"]) :is(.step-label, .select-label, .stats div span, .range-row span, .range-ticks, .brand small, .tv-size-screen figcaption span, .tv-resolution) { color: #624777; }
 html:not([data-theme="cyber"]) .tv-size-screen figcaption { color: #2b1a3d; }
 html:not([data-theme="cyber"]) :is(input[type="range"], input[type="checkbox"]) { accent-color: #5a189a; }
@@ -885,7 +864,7 @@ html[data-theme="cyber"] :is(.upload-zone, .notice, .feedback) { background: #10
 html[data-theme="cyber"] .upload-zone.dragging { background: #20404a; border-color: #00d9f5; }
 html[data-theme="cyber"] :is(.feedback.correct, .feedback.incorrect) { background: #17333a; border: 1px solid #00d9f5; }
 html[data-theme="cyber"] .feedback.incorrect { border-color: #ff79d4; }
-html[data-theme="cyber"] :is(.hero p, .section-heading p, .upload-zone p, .card-bottom, .grid-option, .notice p, .tv-stretch-label, .tv-tools p, .tv-fact p, .tv-signal p, .tv-quiz > p, .image-card .card-tag, .jumper-controls label, footer) { color: #b1cbd0; }
+html[data-theme="cyber"] :is(.hero p, .section-heading p, .upload-zone p, .card-bottom, .grid-option, .notice p, .tv-stretch-label, .tv-tools p, .tv-fact p, .tv-signal p, .tv-quiz > p, .image-card .card-tag, .jumper-controls label) { color: #b1cbd0; }
 html[data-theme="cyber"] :is(.step-label, .select-label, .stats div span, .range-row span, .range-ticks, .brand small, .tv-size-screen figcaption span, .tv-resolution) { color: #a9c2ca; }
 html[data-theme="cyber"] :is(.hint-button, .notice-icon, .tv-quiz h2 span, .section-heading h2 span) { color: #00d9f5; }
 html[data-theme="cyber"] :is(.stats div, .image-card) { border-color: #38616a; }
@@ -901,3 +880,10 @@ html[data-theme="cyber"] #theme-toggle { border-color: #e8ff00; color: #e8ff00; 
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Footer copied from Colour Depth: centred copyright and link back to Applications 4 Education. */
+.app-footer { display:flex; justify-content:center; align-items:center; gap:.35rem; margin-top:1.25rem; color:#5a189a; font-size:.9rem; font-weight:650; }
+.app-footer { padding-bottom:1.5rem; }
+.app-footer small { font-size:inherit; }
+.app-footer a { color:inherit; }
+html[data-theme="cyber"] .app-footer { color:#9ab4ba; }
