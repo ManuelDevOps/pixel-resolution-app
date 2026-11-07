@@ -109,9 +109,9 @@ test('Explore chooser and drop keep samples intact, reject safely, and ignore st
     assert.equal(node('resolution').getAttribute?.('aria-valuetext'), '1200 × 1600 px');
     assert.equal(node('image-select').value, 'photo');
     node('theme-toggle').fire('click');
-    assert.equal(node('html').dataset.theme, 'cyber');
-    assert.equal(node('theme-toggle').textContent, 'Standard theme');
-    assert.equal(session.get('pixel-lab-theme'), 'cyber');
+    assert.equal(node('html').dataset.theme, undefined);
+    assert.equal(node('theme-toggle').textContent, 'Cyber theme');
+    assert.equal(session.get('pixel-lab-theme'), 'standard');
     assert.equal(node('image-select').value, 'photo');
     assert.equal(node('preview-size').textContent, '1200 × 1600 px');
     assert.match(node('explore').innerHTML, /<option value="photo"/);
@@ -197,9 +197,9 @@ test('Explore chooser and drop keep samples intact, reject safely, and ignore st
     pending[6].fire('load');
     assert.equal(node('source-size').textContent, 'Sample illustration: 320 × 240 px');
     node('theme-toggle').fire('click');
-    assert.equal(node('html').dataset.theme, undefined);
-    assert.equal(node('theme-toggle').textContent, 'Cyber theme');
-    assert.equal(session.get('pixel-lab-theme'), 'standard');
+    assert.equal(node('html').dataset.theme, 'cyber');
+    assert.equal(node('theme-toggle').textContent, 'Standard theme');
+    assert.equal(session.get('pixel-lab-theme'), 'cyber');
     assert.equal(node('explore').hidden, false);
     assert.equal(nextUrl, 7); // browser-local object URLs, no upload request
     assert.deepEqual(revoked, ['blob:1', 'blob:2', 'blob:3', 'blob:4', 'blob:5', 'blob:6', 'blob:7']);

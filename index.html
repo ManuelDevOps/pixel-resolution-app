@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f7f6fc">
+  <meta name="theme-color" content="#03090b">
   <title>Pixel Resolution Lab</title>
   <link rel="icon" href="data:,">
-  <!-- Apply a stored Cyber choice before the first paint; src/theme.js owns the toggle. -->
-  <script>try { if (sessionStorage.getItem('pixel-lab-theme') === 'cyber') document.documentElement.dataset.theme = 'cyber'; } catch { /* Storage may be blocked. */ }</script>
+  <!-- Apply Cyber (the default) before the first paint unless the session chose Standard; src/theme.js owns the toggle. -->
+  <script>try { if (sessionStorage.getItem('pixel-lab-theme') !== 'standard') document.documentElement.dataset.theme = 'cyber'; } catch { document.documentElement.dataset.theme = 'cyber'; }</script>
   <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
@@ -19,7 +19,7 @@
         <button id="tv-tab" aria-pressed="false">TV Lab</button>
         <button id="jumper-tab" aria-pressed="false">Jumper Lab</button>
       </nav>
-      <button id="theme-toggle" type="button">Cyber theme</button>
+      <button id="theme-toggle" type="button">Standard theme</button>
     </div>
   </header>
   <main class="container">

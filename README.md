@@ -39,7 +39,7 @@ npx wrangler@4.157.0 deploy
 
 ## Theme
 
-The default **Standard** theme uses Colour Depth's warm pastel gradient, purple headings and active controls, yellow outlines and playful rounded panels across Explore, TV Lab and Jumper Lab. Select **Cyber theme** in the header for the optional dark skin; the button then says **Standard theme** to switch back. Switching themes does not restart the page or change your picture or settings. Your choice lasts for the current browser session when session storage is available; if storage is blocked, the button still works until you reload. No external fonts or theme assets are requested.
+The app opens in the **Cyber** theme, like Colour Depth and FPS Lab. Select **Standard theme** in the header to switch; the **Standard** theme uses Colour Depth's warm pastel gradient, purple headings and active controls, yellow outlines and playful rounded panels across Explore, TV Lab and Jumper Lab. From Standard, the button says **Cyber theme** to switch back. Switching themes does not restart the page or change your picture or settings. Your choice lasts for the current browser session when session storage is available; if storage is blocked, the button still works until you reload. No external fonts or theme assets are requested.
 
 ## Learning activities
 
